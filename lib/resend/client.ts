@@ -1,5 +1,10 @@
 import { Resend } from 'resend';
 
-export const resend = new Resend(process.env.RESEND_API_KEY!);
+let _resend: Resend | null = null;
+export function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY || 'placeholder');
+  return _resend;
+}
+export const resend = { emails: { send: (...args: any[]) => getResend().emails.send(...args) } };
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'clinic@yourdomain.com';
 export const DOCTOR_EMAIL = process.env.DOCTOR_EMAIL || '';
