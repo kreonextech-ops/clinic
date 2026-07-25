@@ -28,10 +28,10 @@ function isOCIConfigured(): boolean {
 async function uploadToOCI(file: File, key: string): Promise<string> {
   // Lazy-import to avoid crash when credentials are missing
   const { PutObjectCommand } = await import('@aws-sdk/client-s3');
-  const { ociClient, OCI_BUCKET, OCI_PUBLIC_URL } = await import('@/lib/oci/client');
+  const { getOciClient, OCI_BUCKET, OCI_PUBLIC_URL } = await import('@/lib/oci/client');
 
   const bytes = await file.arrayBuffer();
-  await ociClient.send(
+  await getOciClient().send(
     new PutObjectCommand({
       Bucket: OCI_BUCKET,
       Key: key,
