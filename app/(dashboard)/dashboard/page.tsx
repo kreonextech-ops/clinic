@@ -11,45 +11,57 @@ import { EarningsSummary } from '@/components/dashboard/EarningsSummary';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 
 async function getDashboardData(canViewEarnings: boolean) {
-  const today = todayISO();
-  const monthStart = today.slice(0, 7) + '-01';
+  try {
+    const today = todayISO();
+    const monthStart = today.slice(0, 7) + '-01';
 
-  const [todayAppts, overdueFollowUps, lowStock, pending] = await Promise.all([
-    db.query.appointments.findMany({
-      where: and(eq(appointments.scheduledDate, today), eq(appointments.status, 'upcoming')),
-      with: { patient: true },
-      orderBy: (a, { asc }) => [asc(a.scheduledTime)],
-    }),
-    db.select({ count: sql<number>`count(*)` }).from(followUps)
-      .where(and(eq(followUps.status, 'pending'), lt(followUps.dueDate, today))),
-    db.select({ count: sql<number>`count(*)` }).from(inventory)
-      .where(sql`quantity::numeric <= low_stock_threshold::numeric`),
-    db.select({ count: sql<number>`count(*)` }).from(earnings).where(eq(earnings.paymentStatus, 'pending')),
-  ]);
-
-  let monthEarnings = [{ total: 0, settled: 0, pending: 0 }];
-  let todayEarnings = [{ total: 0 }];
-
-  if (canViewEarnings) {
-    [monthEarnings, todayEarnings] = await Promise.all([
-      db.select({
-        total: sql<number>`coalesce(sum(total_amount::numeric), 0)`,
-        settled: sql<number>`coalesce(sum(case when payment_status = 'settled' then total_amount::numeric else 0 end), 0)`,
-        pending: sql<number>`coalesce(sum(case when payment_status = 'pending' then total_amount::numeric else 0 end), 0)`,
-      }).from(earnings).where(gte(earnings.createdAt, new Date(monthStart))),
-      db.select({ total: sql<number>`coalesce(sum(total_amount::numeric), 0)` })
-        .from(earnings).where(gte(earnings.createdAt, new Date(today))),
+    const [todayAppts, overdueFollowUps, lowStock, pending] = await Promise.all([
+      db.query.appointments.findMany({
+        where: and(eq(appointments.scheduledDate, today), eq(appointments.status, 'upcoming')),
+        with: { patient: true },
+        orderBy: (a, { asc }) => [asc(a.scheduledTime)],
+      }),
+      db.select({ count: sql<number>`count(*)` }).from(followUps)
+        .where(and(eq(followUps.status, 'pending'), lt(followUps.dueDate, today))),
+      db.select({ count: sql<number>`count(*)` }).from(inventory)
+        .where(sql`quantity::numeric <= low_stock_threshold::numeric`),
+      db.select({ count: sql<number>`count(*)` }).from(earnings).where(eq(earnings.paymentStatus, 'pending')),
     ]);
-  }
 
-  return {
-    todayAppts,
-    month: monthEarnings[0] || { total: 0, settled: 0, pending: 0 },
-    todayTotal: Number(todayEarnings[0]?.total || 0),
-    overdueFollowUps: Number(overdueFollowUps[0]?.count || 0),
-    lowStock: Number(lowStock[0]?.count || 0),
-    pendingPayments: Number(pending[0]?.count || 0),
-  };
+    let monthEarnings = [{ total: 0, settled: 0, pending: 0 }];
+    let todayEarnings = [{ total: 0 }];
+
+    if (canViewEarnings) {
+      [monthEarnings, todayEarnings] = await Promise.all([
+        db.select({
+          total: sql<number>`coalesce(sum(total_amount::numeric), 0)`,
+          settled: sql<number>`coalesce(sum(case when payment_status = 'settled' then total_amount::numeric else 0 end), 0)`,
+          pending: sql<number>`coalesce(sum(case when payment_status = 'pending' then total_amount::numeric else 0 end), 0)`,
+        }).from(earnings).where(gte(earnings.createdAt, new Date(monthStart))),
+        db.select({ total: sql<number>`coalesce(sum(total_amount::numeric), 0)` })
+          .from(earnings).where(gte(earnings.createdAt, new Date(today))),
+      ]);
+    }
+
+    return {
+      todayAppts,
+      month: monthEarnings[0] || { total: 0, settled: 0, pending: 0 },
+      todayTotal: Number(todayEarnings[0]?.total || 0),
+      overdueFollowUps: Number(overdueFollowUps[0]?.count || 0),
+      lowStock: Number(lowStock[0]?.count || 0),
+      pendingPayments: Number(pending[0]?.count || 0),
+    };
+  } catch (err) {
+    console.error('Database connection error in getDashboardData:', err);
+    return {
+      todayAppts: [],
+      month: { total: 0, settled: 0, pending: 0 },
+      todayTotal: 0,
+      overdueFollowUps: 0,
+      lowStock: 0,
+      pendingPayments: 0,
+    };
+  }
 }
 
 export default async function DashboardPage() {
