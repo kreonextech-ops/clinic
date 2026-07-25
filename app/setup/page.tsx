@@ -210,7 +210,7 @@ export default function SetupPage() {
                     <input
                       type="text"
                       value={securityAnswer1}
-                      onChange={(e) => setAnswer1(e.target.value)}
+                      onChange={(e) => setSecurityAnswer1(e.target.value)}
                       required
                       placeholder="Your answer"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/60"
