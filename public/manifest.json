@@ -1,0 +1,17 @@
+{
+  "name": "Dental Clinic Management",
+  "short_name": "DentalClinic",
+  "description": "Dental clinic management system",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

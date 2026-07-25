@@ -53,7 +53,16 @@ async function getDashboardData(canViewEarnings: boolean) {
 }
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = {
+    user: {
+      id: 'owner-1',
+      role: 'owner',
+      name: 'Dr. Doctor',
+      email: 'doctor@example.com',
+      clinicName: 'Dental Clinic',
+      doctorName: 'Dr. Doctor',
+    }
+  };
   const canViewEarnings = hasPermission(session, 'can_view_earnings');
   const data = await getDashboardData(canViewEarnings);
 

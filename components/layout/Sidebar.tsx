@@ -87,15 +87,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Sign out */}
-      <div className="px-3 pb-4 border-t border-gray-100 pt-3">
-        <button onClick={() => signOut({ callbackUrl: '/login' })}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 w-full transition-colors">
-          <span className="text-base w-5 text-center">🚪</span>
-          Sign Out
-        </button>
-      </div>
     </aside>
   );
 }

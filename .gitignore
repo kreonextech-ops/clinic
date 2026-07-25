@@ -31,3 +31,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pgsql binaries & zips
+/pgsql/
+*.zip
+.env
+.env.local
+.env.local.backup
+
