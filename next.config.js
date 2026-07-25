@@ -18,6 +18,15 @@ const nextConfig = {
     // Allow unoptimized local uploads in dev
     unoptimized: process.env.NODE_ENV === 'development',
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/dashboard',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {
