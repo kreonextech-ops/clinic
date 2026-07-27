@@ -2,16 +2,21 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 
-// Supabase Transaction Pooler — IPv4, port 6543, works on Vercel serverless
+// Verified Supabase Pooler (Tokyo Region: aws-0-ap-northeast-1)
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres';
+  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres';
 
 const pool = new Pool({
   connectionString,
   ssl: { rejectUnauthorized: false },
   max: 10,
-  connectionTimeoutMillis: 8000,
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected Pg pool error:', err.message);
 });
 
 export const db = drizzle(pool, { schema });
