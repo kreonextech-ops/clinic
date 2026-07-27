@@ -56,7 +56,7 @@ export default function TreatmentsReportPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {['#', 'Treatment', 'Count', 'Share', 'Bar'].map((h) => (
+                  {['#', 'Treatment', 'Count', 'Share', 'Bar'].map((h: any) => (
                     <th key={h} className="text-left text-xs font-semibold text-gray-600 px-4 py-3">{h}</th>
                   ))}
                 </tr>

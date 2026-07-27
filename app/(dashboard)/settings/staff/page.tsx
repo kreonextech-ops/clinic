@@ -156,7 +156,7 @@ export default function StaffManagementPage() {
               <button onClick={() => setShowCreate(true)} className="text-sm text-blue-600 hover:underline mt-1">Create one</button>
             </div>
           ) : (
-            staffList.map((member) => (
+            staffList.map((member: any) => (
               <div key={member.id}
                 onClick={() => setSelectedStaff({ ...member })}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedStaff?.id === member.id ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-200'} ${!member.isActive ? 'opacity-50' : ''}`}>
@@ -208,7 +208,7 @@ export default function StaffManagementPage() {
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                 <label className="block text-xs font-medium text-gray-600 mb-2">Role Preset</label>
                 <div className="flex gap-2">
-                  {(['assistant', 'receptionist'] as const).map((r) => (
+                  {(['assistant', 'receptionist'] as const).map((r: any) => (
                     <button key={r} onClick={() => applyRoleDefaults(r)}
                       className={`flex-1 py-2 text-xs rounded-lg border font-medium transition-colors ${selectedStaff.role === r ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
                       {ROLE_LABELS[r]}
@@ -220,13 +220,13 @@ export default function StaffManagementPage() {
 
               {/* Permissions toggles */}
               <div className="space-y-4">
-                {PERMISSION_GROUPS.map((group) => (
+                {PERMISSION_GROUPS.map((group: any) => (
                   <div key={group.label}>
                     <p className={`text-xs font-bold mb-2 ${group.label.includes('Finance') ? 'text-red-600' : 'text-gray-600'}`}>
                       {group.label.includes('Finance') ? '🔒 ' : ''}{group.label}
                     </p>
                     <div className="space-y-1.5">
-                      {group.keys.map((key) => {
+                      {group.keys.map((key: any) => {
                         const enabled = selectedStaff.permissions[key] === true;
                         return (
                           <div key={key} onClick={() => togglePermission(key)}

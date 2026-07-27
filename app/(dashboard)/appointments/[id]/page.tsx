@@ -96,7 +96,7 @@ export default function AppointmentDetailPage() {
         <div>
           <p className="text-xs text-gray-500 mb-2 font-medium">Update Status</p>
           <div className="flex flex-wrap gap-2">
-            {STATUS_ACTIONS.filter((a) => a.value !== apt.status).map((a) => (
+            {STATUS_ACTIONS.filter((a: any) => a.value !== apt.status).map((a: any) => (
               <button key={a.value} onClick={() => updateStatus(a.value)}
                 className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${a.color}`}>
                 {a.label}

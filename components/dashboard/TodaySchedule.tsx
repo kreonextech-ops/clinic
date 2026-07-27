@@ -23,7 +23,7 @@ export function TodaySchedule({ appointments }: { appointments: AppointmentWithP
         </span>
       </div>
       <div className="space-y-2 max-h-72 overflow-y-auto">
-        {appointments.map((apt) => (
+        {appointments.map((apt: any) => (
           <Link
             key={apt.id}
             href={`/appointments/${apt.id}`}

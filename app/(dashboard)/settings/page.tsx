@@ -138,7 +138,7 @@ export default function SettingsPage() {
             { label: 'Current Password', key: 'current' as const },
             { label: 'New Password', key: 'newPass' as const },
             { label: 'Confirm New Password', key: 'confirm' as const },
-          ].map((f) => (
+          ].map((f: any) => (
             <div key={f.key}>
               <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
               <input type="password" value={passwordForm[f.key]}
@@ -157,14 +157,14 @@ export default function SettingsPage() {
           <h3 className="font-semibold text-gray-900 mb-1">Security Questions</h3>
           <p className="text-xs text-gray-500 mb-4">Used for password recovery</p>
           <form onSubmit={saveSecurity} className="space-y-4">
-            {[1, 2].map((n) => (
+            {[1, 2].map((n: any) => (
               <div key={n}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Question {n}</label>
                 <select value={n === 1 ? securityForm.q1 : securityForm.q2}
                   onChange={(e) => setSecurityForm((p) => n === 1 ? { ...p, q1: e.target.value } : { ...p, q2: e.target.value })}
                   className={inputClass + ' mb-2'}>
                   <option value="">Select a question...</option>
-                  {SECURITY_QUESTIONS.map((q) => <option key={q} value={q}>{q}</option>)}
+                  {SECURITY_QUESTIONS.map((q: any) => <option key={q} value={q}>{q}</option>)}
                 </select>
                 <input type="password"
                   value={n === 1 ? securityForm.a1 : securityForm.a2}

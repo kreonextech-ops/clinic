@@ -46,7 +46,7 @@ export default function NewInventoryPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
             <select value={form.unit} onChange={set('unit')} className={inputClass}>
-              {INVENTORY_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+              {INVENTORY_UNITS.map((u: any) => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
           <div>

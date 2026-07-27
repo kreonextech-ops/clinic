@@ -16,11 +16,11 @@ export function MobileNav() {
     { href: '/appointments', label: 'Appts', icon: '📅', show: hasPermission(session, 'can_view_appointments') },
     { href: '/inventory', label: 'Stock', icon: '📦', show: hasPermission(session, 'can_manage_inventory') },
     { href: '/reports', label: 'Reports', icon: '📊', show: hasPermission(session, 'can_view_reports') },
-  ].filter((i) => i.show).slice(0, 5);
+  ].filter((i: any) => i.show).slice(0, 5);
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex">
-      {allItems.map((item) => {
+      {allItems.map((item: any) => {
         const active = pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <Link key={item.href} href={item.href}

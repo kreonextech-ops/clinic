@@ -34,7 +34,7 @@ export function earningsReportHtml(clinicName: string, data: any[], months: numb
   <table>
     <thead><tr><th>Month</th><th>Consultation</th><th>Procedure</th><th>Medicine</th><th>Total</th><th>Settled</th><th>Pending</th></tr></thead>
     <tbody>
-      ${[...data].reverse().map((r) => `<tr>
+      ${[...data].reverse().map((r: any) => `<tr>
         <td>${r.label}</td>
         <td>${formatINR(Number(r.consultation))}</td>
         <td>${formatINR(Number(r.procedure))}</td>
@@ -80,7 +80,7 @@ export function pendingPaymentsReportHtml(clinicName: string, data: any[]): stri
   <table>
     <thead><tr><th>Patient</th><th>Phone</th><th>Visit Date</th><th>Total Amount</th><th>Balance Due</th></tr></thead>
     <tbody>
-      ${data.map((r) => `<tr>
+      ${data.map((r: any) => `<tr>
         <td><strong>${r.patientName}</strong></td>
         <td>${r.patientPhone || '—'}</td>
         <td>${formatDate(r.visitDate)}</td>

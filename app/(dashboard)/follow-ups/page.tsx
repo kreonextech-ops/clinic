@@ -46,7 +46,7 @@ export default function FollowUpsPage() {
 
       {/* Status Tabs */}
       <div className="flex gap-2 mb-5 flex-wrap">
-        {STATUS_TABS.map((tab) => (
+        {STATUS_TABS.map((tab: any) => (
           <button key={tab.value} onClick={() => setActiveStatus(tab.value)}
             className={`px-4 py-2 text-sm rounded-full border font-medium transition-colors ${
               activeStatus === tab.value ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -60,7 +60,7 @@ export default function FollowUpsPage() {
         <EmptyState icon="🔔" title="No follow-ups" description="Follow-up reminders are created when recording visits." />
       ) : (
         <div className="space-y-2">
-          {followUps.map((f) => (
+          {followUps.map((f: any) => (
             <div key={f.id} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

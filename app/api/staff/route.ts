@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       .orderBy(desc(staff.createdAt));
 
     return NextResponse.json(
-      list.map((s) => ({
+      list.map((s: any) => ({
         ...s,
         permissions: JSON.parse(s.permissions || '{}'),
       }))

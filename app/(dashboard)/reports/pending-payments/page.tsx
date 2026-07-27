@@ -49,13 +49,13 @@ export default function PendingPaymentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {['Patient', 'Phone', 'Visit Date', 'Total Amount', 'Balance Due', 'Action'].map((h) => (
+                {['Patient', 'Phone', 'Visit Date', 'Total Amount', 'Balance Due', 'Action'].map((h: any) => (
                   <th key={h} className="text-left text-xs font-semibold text-gray-600 px-4 py-3">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.map((r) => (
+              {data.map((r: any) => (
                 <tr key={r.visitId} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <Link href={`/patients/${r.patientId}`} className="font-medium text-blue-600 hover:underline">

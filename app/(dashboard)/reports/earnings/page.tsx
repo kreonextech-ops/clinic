@@ -50,7 +50,7 @@ export default function EarningsReportPage() {
           { label: 'Total Revenue', value: totals.total, color: 'blue' },
           { label: 'Settled', value: totals.settled, color: 'green' },
           { label: 'Pending', value: totals.pending, color: 'orange' },
-        ].map((s) => (
+        ].map((s: any) => (
           <div key={s.label} className={`bg-white rounded-xl border p-4 ${s.color === 'green' ? 'border-green-200' : s.color === 'orange' ? 'border-orange-200' : 'border-gray-200'}`}>
             <p className="text-xs text-gray-500 mb-1">{s.label}</p>
             <p className={`text-xl font-bold ${s.color === 'green' ? 'text-green-700' : s.color === 'orange' ? 'text-orange-700' : 'text-blue-700'}`}>
@@ -86,13 +86,13 @@ export default function EarningsReportPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {['Month', 'Consultation', 'Procedure', 'Medicine', 'Total', 'Settled', 'Pending'].map((h) => (
+                  {['Month', 'Consultation', 'Procedure', 'Medicine', 'Total', 'Settled', 'Pending'].map((h: any) => (
                     <th key={h} className="text-left text-xs font-semibold text-gray-600 px-4 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {[...data].reverse().map((r) => (
+                {[...data].reverse().map((r: any) => (
                   <tr key={r.month} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{r.label}</td>
                     <td className="px-4 py-3 text-gray-700">{formatINR(Number(r.consultation))}</td>

@@ -75,7 +75,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <Link
             key={tab.href}
             href={tab.href}
@@ -102,7 +102,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
                 { label: 'Gender', value: patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : '—' },
                 { label: 'Phone', value: patient.phone || '—' },
                 { label: 'Address', value: patient.address || '—' },
-              ].map((f) => (
+              ].map((f: any) => (
                 <div key={f.label}>
                   <p className="text-gray-500 text-xs mb-0.5">{f.label}</p>
                   <p className="text-gray-900 font-medium">{f.value}</p>
@@ -127,7 +127,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
               <p className="text-sm text-gray-400 py-4 text-center">No visits yet</p>
             ) : (
               <div className="space-y-2">
-                {recentVisits.map((v) => (
+                {recentVisits.map((v: any) => (
                   <Link
                     key={v.id}
                     href={`/visits/${v.id}`}
@@ -165,7 +165,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
             { label: 'Total Earned', value: formatINR(Number(stats?.totalEarned || 0)), icon: '💰', color: 'green' },
             { label: 'Pending Amount', value: formatINR(Number(stats?.pendingAmount || 0)), icon: '⏳', color: 'orange' },
             { label: 'Overdue Follow-ups', value: String(stats?.overdueFollowUps || 0), icon: '🔔', color: 'red' },
-          ].map((s) => (
+          ].map((s: any) => (
             <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">{s.label}</p>

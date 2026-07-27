@@ -51,7 +51,7 @@ export default function ReportsPage() {
     <div>
       <PageHeader title="Reports" description="Insights and analytics for your clinic" />
       <div className="grid sm:grid-cols-2 gap-4">
-        {REPORT_CARDS.map((card) => (
+        {REPORT_CARDS.map((card: any) => (
           <Link key={card.href} href={card.href}
             className={`block p-6 rounded-xl border transition-colors ${colorMap[card.color]}`}>
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${iconBg[card.color]}`}>

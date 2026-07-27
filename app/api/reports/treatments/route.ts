@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const total = data.reduce((s, r) => s + Number(r.count), 0);
 
     return NextResponse.json(
-      data.map((r) => ({
+      data.map((r: any) => ({
         treatmentName: r.treatment_name,
         count: Number(r.count),
         percentage: total > 0 ? Math.round((Number(r.count) / total) * 100) : 0,

@@ -77,7 +77,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     if (parsed.data.length > 0) {
       await db.insert(treatments).values(
-        parsed.data.map((t) => ({
+        parsed.data.map((t: any) => ({
           visitId,
           treatmentName: t.treatmentName,
           isCustom: t.isCustom ?? false,

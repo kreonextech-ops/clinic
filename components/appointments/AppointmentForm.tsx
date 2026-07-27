@@ -81,7 +81,7 @@ export function AppointmentForm() {
           className={inputClass}
         >
           <option value="">Select patient</option>
-          {patients.map((p) => (
+          {patients.map((p: any) => (
             <option key={p.id} value={p.id}>
               {p.name} — {p.patientId} {p.phone ? `(${p.phone})` : ''}
             </option>

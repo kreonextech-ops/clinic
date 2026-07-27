@@ -29,13 +29,13 @@ export default function InventoryReorderPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {['Item Name', 'Current Stock', 'Min. Threshold', 'Need to Order', 'Unit'].map((h) => (
+                {['Item Name', 'Current Stock', 'Min. Threshold', 'Need to Order', 'Unit'].map((h: any) => (
                   <th key={h} className="text-left text-xs font-semibold text-gray-600 px-4 py-3">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.map((r) => (
+              {data.map((r: any) => (
                 <tr key={r.id} className="border-b border-gray-100 last:border-0 bg-orange-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{r.name}</td>
                   <td className="px-4 py-3 font-bold text-orange-700">{parseFloat(r.quantity).toFixed(1)}</td>

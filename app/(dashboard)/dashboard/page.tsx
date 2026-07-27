@@ -88,7 +88,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((s) => (
+        {statCards.map((s: any) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xl">{s.icon}</span>

@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const [visit] = await db.insert(visits).values(visitData).returning();
 
     if (treatmentData.length > 0) {
-      await db.insert(treatments).values(treatmentData.map((t) => ({ ...t, visitId: visit.id })));
+      await db.insert(treatments).values(treatmentData.map((t: any) => ({ ...t, visitId: visit.id })));
     }
 
     if (earningsData) {
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     if (followUpData.length > 0) {
       await db.insert(followUps).values(
-        followUpData.map((f) => ({ ...f, visitId: visit.id, patientId: visitData.patientId }))
+        followUpData.map((f: any) => ({ ...f, visitId: visit.id, patientId: visitData.patientId }))
       );
     }
 

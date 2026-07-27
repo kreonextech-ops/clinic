@@ -76,7 +76,7 @@ export function visitReceiptHtml(data: VisitReceiptData): string {
   ${treatments.length > 0 ? `
   <div class="section">
     <div class="section-title">Treatments Performed</div>
-    <div>${treatments.map((t) => `<span class="treatment-tag">${t.treatmentName}</span>`).join('')}</div>
+    <div>${treatments.map((t: any) => `<span class="treatment-tag">${t.treatmentName}</span>`).join('')}</div>
   </div>` : ''}
 
   ${visit.complaints || visit.doctorNotes ? `

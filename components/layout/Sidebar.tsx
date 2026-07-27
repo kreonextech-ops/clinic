@@ -39,7 +39,7 @@ export function Sidebar() {
       show: hasPermission(session, 'can_view_reports'),
     },
     { href: '/settings', label: 'Settings', icon: '⚙️', show: true },
-  ].filter((i) => i.show);
+  ].filter((i: any) => i.show);
 
   return (
     <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-30">
@@ -73,7 +73,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
+        {navItems.map((item: any) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link key={item.href} href={item.href}

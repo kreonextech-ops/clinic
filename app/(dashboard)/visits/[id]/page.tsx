@@ -137,7 +137,7 @@ export default function VisitDetailPage() {
           <p className="text-sm text-gray-400">No treatments recorded</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {visit.treatments.map((t) => (
+            {visit.treatments.map((t: any) => (
               <span key={t.id} className="text-sm bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full border border-blue-200">
                 {t.isCustom && <span className="text-xs mr-1 opacity-70">[Custom]</span>}
                 {t.treatmentName}
@@ -174,7 +174,7 @@ export default function VisitDetailPage() {
                     { label: 'Procedure Total (₹)', key: 'procedureFeeTotal' },
                     { label: 'Procedure Paid (₹)', key: 'procedureFeePaid' },
                     { label: 'Medicine (₹)', key: 'medicineCharge' },
-                  ].map((f) => (
+                  ].map((f: any) => (
                     <div key={f.key}>
                       <label className="block text-xs text-gray-500 mb-1">{f.label}</label>
                       <input type="number" min="0" value={bf[f.key] || '0'}
@@ -184,7 +184,7 @@ export default function VisitDetailPage() {
                   ))}
                 </div>
                 <div className="flex gap-3 items-center">
-                  {['pending', 'settled'].map((s) => (
+                  {['pending', 'settled'].map((s: any) => (
                     <button key={s} type="button"
                       onClick={() => setBillingForm((p) => ({ ...p, paymentStatus: s }))}
                       className={`text-xs px-3 py-1.5 rounded-full border font-medium capitalize ${bf.paymentStatus === s ? (s === 'settled' ? 'bg-green-100 border-green-400 text-green-800' : 'bg-orange-100 border-orange-400 text-orange-800') : 'border-gray-200 text-gray-500'}`}>
@@ -208,7 +208,7 @@ export default function VisitDetailPage() {
                   { label: 'Balance', value: formatINR(parseAmount(e.procedureFeeBalance)) },
                   { label: 'Medicine', value: formatINR(parseAmount(e.medicineCharge)) },
                   { label: 'Total Amount', value: formatINR(parseAmount(e.totalAmount)) },
-                ].map((f) => (
+                ].map((f: any) => (
                   <div key={f.label}>
                     <p className="text-xs text-gray-500">{f.label}</p>
                     <p className={`font-bold ${f.label === 'Total Amount' ? 'text-lg text-gray-900' : 'text-gray-800'}`}>{f.value}</p>

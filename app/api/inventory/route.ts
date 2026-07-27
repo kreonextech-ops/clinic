@@ -27,11 +27,11 @@ export async function GET(req: NextRequest) {
     let list = await db.select().from(inventory).orderBy(asc(inventory.name));
 
     if (lowStock === '1') {
-      list = list.filter((i) => parseFloat(i.quantity) <= parseFloat(i.lowStockThreshold));
+      list = list.filter((i: any) => parseFloat(i.quantity) <= parseFloat(i.lowStockThreshold));
     }
 
     return NextResponse.json(
-      list.map((i) => ({ ...i, isLowStock: parseFloat(i.quantity) <= parseFloat(i.lowStockThreshold) }))
+      list.map((i: any) => ({ ...i, isLowStock: parseFloat(i.quantity) <= parseFloat(i.lowStockThreshold) }))
     );
   } catch (err) {
     console.error('API /api/inventory GET error:', err);

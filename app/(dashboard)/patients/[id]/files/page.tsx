@@ -45,7 +45,7 @@ export default function PatientFilesPage() {
       </div>
 
       <div className="flex gap-1 border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <Link key={tab.href} href={tab.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px ${tab.active ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {tab.label}
@@ -60,7 +60,7 @@ export default function PatientFilesPage() {
           <p className="text-center text-gray-400 py-8">No files uploaded yet</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-            {files.map((f) => (
+            {files.map((f: any) => (
               <div key={f.id}>
                 <FilePreview
                   url={f.fileUrl}

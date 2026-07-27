@@ -50,7 +50,7 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
       </div>
 
       <div className="flex gap-1 border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <Link key={tab.href} href={tab.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px ${tab.active ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {tab.label}
@@ -62,7 +62,7 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
         <EmptyState icon="🩺" title="No visits recorded" description="Record the first visit for this patient." />
       ) : (
         <div className="space-y-3">
-          {allVisits.map((v) => (
+          {allVisits.map((v: any) => (
             <Link key={v.id} href={`/visits/${v.id}`}
               className="block bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-4">

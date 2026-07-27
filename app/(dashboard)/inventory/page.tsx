@@ -53,8 +53,8 @@ export default function InventoryPage() {
     refresh();
   }
 
-  const displayed = filterLow ? items.filter((i) => i.isLowStock) : items;
-  const lowCount = items.filter((i) => i.isLowStock).length;
+  const displayed = filterLow ? items.filter((i: any) => i.isLowStock) : items;
+  const lowCount = items.filter((i: any) => i.isLowStock).length;
 
   return (
     <div>
@@ -87,13 +87,13 @@ export default function InventoryPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {['Item Name', 'Stock', 'Unit', 'Threshold', 'Status', 'Actions'].map((h) => (
+                {['Item Name', 'Stock', 'Unit', 'Threshold', 'Status', 'Actions'].map((h: any) => (
                   <th key={h} className="text-left text-xs font-semibold text-gray-600 px-4 py-3">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {displayed.map((item) => (
+              {displayed.map((item: any) => (
                 <tr key={item.id} className={`border-b border-gray-100 last:border-0 ${item.isLowStock ? 'bg-orange-50' : ''}`}>
                   <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
                   <td className="px-4 py-3">
@@ -134,7 +134,7 @@ export default function InventoryPage() {
                 { label: 'Item Name', key: 'name', type: 'text' },
                 { label: 'Current Quantity', key: 'quantity', type: 'number' },
                 { label: 'Low Stock Threshold', key: 'lowStockThreshold', type: 'number' },
-              ].map((f) => (
+              ].map((f: any) => (
                 <div key={f.key}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
                   <input type={f.type} value={editForm[f.key] || ''} min="0"
@@ -146,7 +146,7 @@ export default function InventoryPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">Unit</label>
                 <select value={editForm.unit} onChange={(e) => setEditForm((p) => ({ ...p, unit: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  {INVENTORY_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                  {INVENTORY_UNITS.map((u: any) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
               <div>

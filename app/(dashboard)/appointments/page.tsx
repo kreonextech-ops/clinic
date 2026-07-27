@@ -98,7 +98,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
         />
       ) : (
         <div className="space-y-2">
-          {list.map((apt) => <AppointmentCard key={apt.id} apt={apt as any} />)}
+          {list.map((apt: any) => <AppointmentCard key={apt.id} apt={apt as any} />)}
         </div>
       )}
     </div>

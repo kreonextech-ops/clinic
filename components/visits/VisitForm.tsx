@@ -52,12 +52,12 @@ export function VisitForm() {
 
   function addTreatment(name: string, isCustom = false) {
     if (!name.trim()) return;
-    if (selectedTreatments.find((t) => t.treatmentName === name)) return;
+    if (selectedTreatments.find((t: any) => t.treatmentName === name)) return;
     setSelectedTreatments((p) => [...p, { treatmentName: name, isCustom, notes: '' }]);
   }
 
   function removeTreatment(name: string) {
-    setSelectedTreatments((p) => p.filter((t) => t.treatmentName !== name));
+    setSelectedTreatments((p) => p.filter((t: any) => t.treatmentName !== name));
   }
 
   function addFollowUp() {
@@ -80,7 +80,7 @@ export function VisitForm() {
     setInventoryUsedList((p) => p.map((item, idx) => {
       if (idx !== i) return item;
       if (field === 'inventoryId') {
-        const found = inventoryItems.find((inv) => inv.id === Number(value));
+        const found = inventoryItems.find((inv: any) => inv.id === Number(value));
         return { ...item, inventoryId: Number(value), name: found?.name || '' };
       }
       return { ...item, [field]: value };
@@ -110,8 +110,8 @@ export function VisitForm() {
         paymentStatus,
         waivedNote: waivedNote || null,
       },
-      followUps: followUpList.filter((f) => f.treatmentName && f.dueDate),
-      inventoryUsed: inventoryUsedList.filter((i) => i.inventoryId > 0).map((i) => ({
+      followUps: followUpList.filter((f: any) => f.treatmentName && f.dueDate),
+      inventoryUsed: inventoryUsedList.filter((i: any) => i.inventoryId > 0).map((i: any) => ({
         inventoryId: i.inventoryId,
         quantityUsed: parseFloat(i.quantityUsed),
       })),
@@ -149,7 +149,7 @@ export function VisitForm() {
             <label className="block text-xs font-medium text-gray-600 mb-1">Select Patient *</label>
             <select required value={patientId} onChange={(e) => setPatientId(e.target.value)} className={inputClass}>
               <option value="">Choose patient</option>
-              {patients.map((p) => <option key={p.id} value={p.id}>{p.name} — {p.patientId}</option>)}
+              {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name} — {p.patientId}</option>)}
             </select>
           </div>
           <div>
@@ -172,7 +172,7 @@ export function VisitForm() {
         <h3 className="font-semibold text-gray-900 mb-3">Treatments</h3>
         {selectedTreatments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {selectedTreatments.map((t) => (
+            {selectedTreatments.map((t: any) => (
               <span key={t.treatmentName} className="flex items-center gap-1.5 bg-blue-100 text-blue-800 text-xs px-3 py-1.5 rounded-full">
                 {t.treatmentName}
                 <button type="button" onClick={() => removeTreatment(t.treatmentName)} className="text-blue-500 hover:text-blue-900 font-bold">×</button>
@@ -185,7 +185,7 @@ export function VisitForm() {
             <label className="block text-xs font-medium text-gray-600 mb-1">Add Predefined Treatment</label>
             <select onChange={(e) => { if (e.target.value) addTreatment(e.target.value); e.target.value = ''; }} className={inputClass}>
               <option value="">Select treatment...</option>
-              {PREDEFINED_TREATMENTS.map((t) => <option key={t} value={t}>{t}</option>)}
+              {PREDEFINED_TREATMENTS.map((t: any) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div>
@@ -208,7 +208,7 @@ export function VisitForm() {
             { label: 'Procedure Fee Total (₹)', value: procedureFeeTotal, set: setProcedureFeeTotal },
             { label: 'Procedure Fee Paid (₹)', value: procedureFeePaid, set: setProcedureFeePaid },
             { label: 'Medicine Charge (₹)', value: medicineCharge, set: setMedicineCharge },
-          ].map((f) => (
+          ].map((f: any) => (
             <div key={f.label}>
               <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
               <input type="number" min="0" value={f.value} onChange={(e) => f.set(e.target.value)} className={inputClass} />
@@ -226,7 +226,7 @@ export function VisitForm() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Payment Status</label>
               <div className="flex gap-2">
-                {['pending', 'settled'].map((s) => (
+                {['pending', 'settled'].map((s: any) => (
                   <button key={s} type="button" onClick={() => setPaymentStatus(s as any)}
                     className={`flex-1 py-1.5 text-xs rounded-lg border font-medium capitalize ${paymentStatus === s ? (s === 'settled' ? 'bg-green-100 border-green-400 text-green-800' : 'bg-orange-100 border-orange-400 text-orange-800') : 'border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
                     {s}
@@ -283,7 +283,7 @@ export function VisitForm() {
               <label className="block text-xs text-gray-500 mb-1">Item</label>
               <select value={item.inventoryId} onChange={(e) => updateInventoryUsed(i, 'inventoryId', e.target.value)} className={inputClass}>
                 <option value={0}>Select item...</option>
-                {inventoryItems.map((inv) => <option key={inv.id} value={inv.id}>{inv.name} (stock: {inv.quantity} {inv.unit})</option>)}
+                {inventoryItems.map((inv: any) => <option key={inv.id} value={inv.id}>{inv.name} (stock: {inv.quantity} {inv.unit})</option>)}
               </select>
             </div>
             <div className="w-28">

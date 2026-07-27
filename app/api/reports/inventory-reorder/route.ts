@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       .orderBy(inventory.name);
 
     return NextResponse.json(
-      rows.map((r) => ({
+      rows.map((r: any) => ({
         ...r,
         deficit: Math.max(0, parseFloat(r.lowStockThreshold) - parseFloat(r.quantity)),
       }))

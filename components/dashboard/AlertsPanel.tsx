@@ -31,7 +31,7 @@ export function AlertsPanel({ overdueFollowUps, lowStockItems, pendingPayments }
     },
   ];
 
-  const active = alerts.filter((a) => a.count > 0);
+  const active = alerts.filter((a: any) => a.count > 0);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -40,7 +40,7 @@ export function AlertsPanel({ overdueFollowUps, lowStockItems, pendingPayments }
         <p className="text-sm text-green-600 text-center py-4">✅ All clear — no alerts</p>
       ) : (
         <div className="space-y-2">
-          {active.map((a) => (
+          {active.map((a: any) => (
             <Link
               key={a.href}
               href={a.href}

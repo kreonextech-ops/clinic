@@ -80,7 +80,7 @@ export default async function PatientsPage({ searchParams }: Props) {
         />
       ) : (
         <div className="space-y-2">
-          {list.map((p) => (
+          {list.map((p: any) => (
             <PatientCard key={p.id} patient={p as any} />
           ))}
         </div>

@@ -57,7 +57,7 @@ export default async function VisitsPage() {
         />
       ) : (
         <div className="space-y-2">
-          {list.map((v) => (
+          {list.map((v: any) => (
             <Link
               key={v.id}
               href={`/visits/${v.id}`}
