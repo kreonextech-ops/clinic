@@ -2,10 +2,19 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 
-// Verified Supabase Pooler (Tokyo Region: aws-0-ap-northeast-1)
-const connectionString =
-  process.env.DATABASE_URL ||
+const TOKYO_VERIFIED_URL =
   'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres';
+
+let connectionString = process.env.DATABASE_URL || TOKYO_VERIFIED_URL;
+
+// Override Vercel env variable if it contains outdated/invalid region or hostname
+if (
+  !connectionString ||
+  connectionString.includes('ap-south-1') ||
+  connectionString.includes('db.viemlmllhddjypejrdmq.supabase.co')
+) {
+  connectionString = TOKYO_VERIFIED_URL;
+}
 
 const pool = new Pool({
   connectionString,
