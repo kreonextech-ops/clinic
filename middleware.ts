@@ -7,7 +7,12 @@ const SECRET =
   'c4a37ee3fbac7b5a2fd29053fe4364f6fb31fff7615fa32b665ff2425480b89dfea41fed5036b21b';
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: SECRET });
+  // Check both HTTPS secure cookie and HTTP standard cookie to prevent Vercel redirect loops
+  const token =
+    (await getToken({ req, secret: SECRET, secureCookie: true })) ||
+    (await getToken({ req, secret: SECRET, secureCookie: false })) ||
+    (await getToken({ req, secret: SECRET }));
+
   const { pathname } = req.nextUrl;
 
   const protectedRoutes = [
