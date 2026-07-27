@@ -141,8 +141,8 @@ export default function SettingsPage() {
           ].map((f: any) => (
             <div key={f.key}>
               <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
-              <input type="password" value={passwordForm[f.key]}
-                onChange={(e) => setPasswordForm((p) => ({ ...p, [f.key]: e.target.value }))} className={inputClass} />
+              <input type="password" value={(passwordForm as any)[f.key]}
+                onChange={(e) => setPasswordForm((p: any) => ({ ...p, [f.key]: e.target.value }))} className={inputClass} />
             </div>
           ))}
           <button type="submit" disabled={saving === 'password'} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
