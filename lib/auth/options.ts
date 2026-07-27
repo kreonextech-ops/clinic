@@ -22,62 +22,68 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
 
-        // 1. Check owner account first
-        const [owner] = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, credentials.username))
-          .limit(1);
+        try {
+          // 1. Check owner account first
+          const [owner] = await db
+            .select()
+            .from(users)
+            .where(eq(users.username, credentials.username))
+            .limit(1);
 
-        if (owner) {
-          const valid = await bcrypt.compare(credentials.password, owner.passwordHash);
+          if (owner) {
+            const valid = await bcrypt.compare(credentials.password, owner.passwordHash);
+            if (!valid) return null;
+            return {
+              id: `owner-${owner.id}`,
+              userId: owner.id,
+              name: owner.doctorName,
+              email: owner.email ?? undefined,
+              username: owner.username,
+              clinicName: owner.clinicName,
+              doctorName: owner.doctorName,
+              logoUrl: owner.logoUrl || null,
+              role: 'owner',
+              permissions: {},
+              staffId: null,
+            };
+          }
+
+          // 2. Check staff accounts
+          const [member] = await db
+            .select()
+            .from(staff)
+            .where(eq(staff.username, credentials.username))
+            .limit(1);
+
+          if (!member || !member.isActive) return null;
+
+          const valid = await bcrypt.compare(credentials.password, member.passwordHash);
           if (!valid) return null;
+
+          // Get clinic info from owner record
+          const [ownerRecord] = member.userId
+            ? await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl })
+                .from(users).where(eq(users.id, member.userId)).limit(1)
+            : await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl })
+                .from(users).limit(1);
+
           return {
-            id: `owner-${owner.id}`,
-            userId: owner.id,
-            name: owner.doctorName,
-            email: owner.email ?? undefined,
-            username: owner.username,
-            clinicName: owner.clinicName,
-            doctorName: owner.doctorName,
-            logoUrl: owner.logoUrl || null,
-            role: 'owner',
-            permissions: {},   // owner has all — checked via isOwner()
-            staffId: null,
+            id: `staff-${member.id}`,
+            userId: ownerRecord?.id || 1,
+            name: member.displayName,
+            email: undefined,
+            username: member.username,
+            clinicName: ownerRecord?.clinicName || 'Dental Clinic',
+            doctorName: member.displayName,
+            logoUrl: ownerRecord?.logoUrl || null,
+            role: member.role,
+            permissions: parsePermissions(member.permissions),
+            staffId: member.id,
           };
+        } catch (err: any) {
+          console.error('Auth authorize error:', err?.message);
+          return null;
         }
-
-        // 2. Check staff accounts
-        const [member] = await db
-          .select()
-          .from(staff)
-          .where(eq(staff.username, credentials.username))
-          .limit(1);
-
-        if (!member) return null;
-        if (!member.isActive) return null;
-
-        const valid = await bcrypt.compare(credentials.password, member.passwordHash);
-        if (!valid) return null;
-
-        // Get clinic name from owner record
-        const [ownerRecord] = member.userId
-          ? await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl }).from(users).where(eq(users.id, member.userId)).limit(1)
-          : await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl }).from(users).limit(1);
-
-        return {
-          id: `staff-${member.id}`,
-          userId: ownerRecord?.id || 1,
-          name: member.displayName,
-          email: undefined,
-          username: member.username,
-          clinicName: ownerRecord?.clinicName || 'Dental Clinic',
-          doctorName: member.displayName,
-          logoUrl: ownerRecord?.logoUrl || null,
-          role: member.role,
-          permissions: parsePermissions(member.permissions),
-          staffId: member.id,
-        };
       },
     }),
   ],

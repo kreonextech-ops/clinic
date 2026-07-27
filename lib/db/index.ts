@@ -1,31 +1,13 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
 import * as schema from './schema';
 
-const defaultUrl =
+// Supabase Transaction Pooler — IPv4 compatible, works on Vercel serverless
+// Format: postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true
+const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres';
+  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require';
 
-// Pooler fallback if direct hostname DNS resolution fails
-const fallbackUrls = [
-  defaultUrl,
-  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-us-east-1.pooler.supabase.com:6543/postgres',
-  'postgresql://postgres:Dent%40lClin%21c2026@db.viemlmllhddjypejrdmq.supabase.co:5432/postgres',
-];
-
-let connectionString = defaultUrl;
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-  max: 15,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected Pg pool error:', err.message);
-});
-
-export const db = drizzle(pool, { schema });
+const sql = neon(connectionString);
+export const db = drizzle(sql, { schema });
 export type DB = typeof db;
