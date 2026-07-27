@@ -48,6 +48,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, user });
   } catch (err: any) {
     console.error('API /api/setup POST error:', err);
-    return NextResponse.json({ error: err?.message || 'Setup failed' }, { status: 500 });
+    let msg = err?.message || 'Setup failed';
+    if (msg.includes('ENOTFOUND') || msg.includes('ECONNREFUSED') || msg.includes('connect')) {
+      msg = 'Database connection timeout. Re-attempting connection to Supabase pooler...';
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
