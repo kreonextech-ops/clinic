@@ -94,6 +94,17 @@ export default function LoginPage() {
               />
             </div>
 
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2.5 text-xs font-medium text-slate-300 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="w-4 h-4 rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500/50 accent-blue-600"
+                />
+                Remember me (Stay logged in on this browser)
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
