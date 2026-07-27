@@ -211,7 +211,7 @@ export default function StaffManagementPage() {
                   {(['assistant', 'receptionist'] as const).map((r: any) => (
                     <button key={r} onClick={() => applyRoleDefaults(r)}
                       className={`flex-1 py-2 text-xs rounded-lg border font-medium transition-colors ${selectedStaff.role === r ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
-                      {ROLE_LABELS[r]}
+                      {(ROLE_LABELS as any)[r]}
                     </button>
                   ))}
                 </div>
@@ -227,11 +227,11 @@ export default function StaffManagementPage() {
                     </p>
                     <div className="space-y-1.5">
                       {group.keys.map((key: any) => {
-                        const enabled = selectedStaff.permissions[key] === true;
+                        const enabled = (selectedStaff.permissions as any)[key] === true;
                         return (
                           <div key={key} onClick={() => togglePermission(key)}
                             className={`flex items-center justify-between px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${enabled ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}>
-                            <span className="text-sm text-gray-800">{PERMISSION_LABELS[key]}</span>
+                            <span className="text-sm text-gray-800">{(PERMISSION_LABELS as any)[key] || key}</span>
                             <div className={`w-9 h-5 rounded-full transition-colors flex items-center px-0.5 ${enabled ? 'bg-green-500' : 'bg-gray-300'}`}>
                               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-4' : 'translate-x-0'}`} />
                             </div>
