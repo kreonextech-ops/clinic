@@ -1,13 +1,18 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
-// Supabase Transaction Pooler — IPv4 compatible, works on Vercel serverless
-// Format: postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true
+// Supabase Transaction Pooler — IPv4, port 6543, works on Vercel serverless
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require';
+  'postgresql://postgres.viemlmllhddjypejrdmq:Dent%40lClin%21c2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres';
 
-const sql = neon(connectionString);
-export const db = drizzle(sql, { schema });
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false },
+  max: 10,
+  connectionTimeoutMillis: 8000,
+});
+
+export const db = drizzle(pool, { schema });
 export type DB = typeof db;
