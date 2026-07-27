@@ -3,10 +3,11 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { users, staff } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, ilike } from 'drizzle-orm';
 import { parsePermissions } from '@/lib/auth/permissions';
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET || 'c4a37ee3fbac7b5a2fd29053fe4364f6fb31fff7615fa32b665ff2425480b89dfea41fed5036b21b',
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',
@@ -25,11 +26,11 @@ export const authOptions: NextAuthOptions = {
         const inputUsername = credentials.username.trim();
 
         try {
-          // 1. Check owner account first
+          // 1. Check owner account first (case-insensitive)
           const [owner] = await db
             .select()
             .from(users)
-            .where(eq(users.username, inputUsername))
+            .where(ilike(users.username, inputUsername))
             .limit(1);
 
           if (owner) {
@@ -54,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           const [member] = await db
             .select()
             .from(staff)
-            .where(eq(staff.username, credentials.username))
+            .where(ilike(staff.username, inputUsername))
             .limit(1);
 
           if (!member || !member.isActive) return null;
