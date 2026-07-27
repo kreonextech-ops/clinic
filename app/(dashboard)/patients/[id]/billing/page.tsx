@@ -14,16 +14,7 @@ export default async function PatientBillingPage({ params }: { params: { id: str
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
 
   // Gate: only users with finance permission see billing
   if (!hasPermission(session, 'can_view_earnings')) {

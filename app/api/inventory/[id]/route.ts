@@ -8,16 +8,7 @@ import { eq } from 'drizzle-orm';
 import { inventoryUpdateSchema } from '@/lib/validations/inventory';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
@@ -36,16 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   await db.delete(inventory).where(eq(inventory.id, parseInt(params.id)));

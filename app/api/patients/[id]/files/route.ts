@@ -7,16 +7,7 @@ import { files } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const list = await db.select().from(files)

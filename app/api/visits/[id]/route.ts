@@ -15,16 +15,7 @@ const treatmentUpdateSchema = z.object({
 });
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const visit = await db.query.visits.findFirst({
@@ -44,16 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
@@ -117,16 +99,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   await db.delete(visits).where(eq(visits.id, parseInt(params.id)));

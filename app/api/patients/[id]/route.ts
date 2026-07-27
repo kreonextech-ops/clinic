@@ -8,16 +8,7 @@ import { eq } from 'drizzle-orm';
 import { patientSchema } from '@/lib/validations/patient';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const [patient] = await db.select().from(patients).where(eq(patients.id, parseInt(params.id))).limit(1);
@@ -27,16 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
@@ -54,16 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   await db.delete(patients).where(eq(patients.id, parseInt(params.id)));

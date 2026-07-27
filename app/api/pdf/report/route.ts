@@ -5,16 +5,7 @@ import { authOptions } from '@/lib/auth/options';
 import { earningsReportHtml, pendingPaymentsReportHtml } from '@/lib/pdf/templates/reportPdf';
 
 export async function GET(req: NextRequest) {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Dental Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
   const { searchParams } = new URL(req.url);

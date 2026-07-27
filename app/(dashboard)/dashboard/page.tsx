@@ -65,16 +65,7 @@ async function getDashboardData(canViewEarnings: boolean) {
 }
 
 export default async function DashboardPage() {
-  const session = {
-    user: {
-      id: 'owner-1',
-      role: 'owner',
-      name: 'Dr. Doctor',
-      email: 'doctor@example.com',
-      clinicName: 'Way2Smile Clinic',
-      doctorName: 'Dr. Doctor',
-    }
-  };
+  const session = await getServerSession(authOptions);
   const canViewEarnings = hasPermission(session, 'can_view_earnings');
   const data = await getDashboardData(canViewEarnings);
 
@@ -124,10 +115,10 @@ export default async function DashboardPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-blue-300 mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Way2Smile Clinic Command Center
+              {(session?.user as any)?.clinicName || 'Clinic'} Command Center
             </div>
             <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">
-              Welcome Back, <span className="gradient-text">Dr. Doctor</span> 👋
+              Welcome Back, <span className="gradient-text">{(session?.user as any)?.doctorName || (session?.user as any)?.name || 'Doctor'}</span> 👋
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-xl">
               Here is your daily operational summary. Manage appointments, patient visits, inventory levels, and financial performance.
