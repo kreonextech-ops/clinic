@@ -28,7 +28,8 @@ export default function LoginPage() {
         setError('Invalid username or password. Please check your credentials.');
         setLoading(false);
       } else {
-        window.location.href = '/dashboard';
+        // Force full page reload to dashboard so session cookie is refreshed
+        window.location.assign('/dashboard');
       }
     } catch (err: any) {
       setError('An unexpected error occurred during login.');
