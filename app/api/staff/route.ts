@@ -24,25 +24,30 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Owner access required' }, { status: 403 });
   }
 
-  const list = await db
-    .select({
-      id: staff.id,
-      username: staff.username,
-      displayName: staff.displayName,
-      role: staff.role,
-      permissions: staff.permissions,
-      isActive: staff.isActive,
-      createdAt: staff.createdAt,
-    })
-    .from(staff)
-    .orderBy(desc(staff.createdAt));
+  try {
+    const list = await db
+      .select({
+        id: staff.id,
+        username: staff.username,
+        displayName: staff.displayName,
+        role: staff.role,
+        permissions: staff.permissions,
+        isActive: staff.isActive,
+        createdAt: staff.createdAt,
+      })
+      .from(staff)
+      .orderBy(desc(staff.createdAt));
 
-  return NextResponse.json(
-    list.map((s) => ({
-      ...s,
-      permissions: JSON.parse(s.permissions || '{}'),
-    }))
-  );
+    return NextResponse.json(
+      list.map((s) => ({
+        ...s,
+        permissions: JSON.parse(s.permissions || '{}'),
+      }))
+    );
+  } catch (err) {
+    console.error('API /api/staff GET error:', err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(req: NextRequest) {

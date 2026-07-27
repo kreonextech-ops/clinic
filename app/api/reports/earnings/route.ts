@@ -25,21 +25,26 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const months = parseInt(searchParams.get('months') || '12');
 
-  const rows = await db.execute(sql`
-    SELECT
-      to_char(created_at, 'YYYY-MM') AS month,
-      to_char(created_at, 'Mon YYYY') AS label,
-      COALESCE(SUM(consultation_fee::numeric), 0) AS consultation,
-      COALESCE(SUM(procedure_fee_total::numeric), 0) AS procedure,
-      COALESCE(SUM(medicine_charge::numeric), 0) AS medicine,
-      COALESCE(SUM(total_amount::numeric), 0) AS total,
-      COALESCE(SUM(CASE WHEN payment_status = 'settled' THEN total_amount::numeric ELSE 0 END), 0) AS settled,
-      COALESCE(SUM(CASE WHEN payment_status = 'pending' THEN total_amount::numeric ELSE 0 END), 0) AS pending
-    FROM earnings
-    WHERE created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
-    GROUP BY month, label
-    ORDER BY month ASC
-  `);
+  try {
+    const rows = await db.execute(sql`
+      SELECT
+        to_char(created_at, 'YYYY-MM') AS month,
+        to_char(created_at, 'Mon YYYY') AS label,
+        COALESCE(SUM(consultation_fee::numeric), 0) AS consultation,
+        COALESCE(SUM(procedure_fee_total::numeric), 0) AS procedure,
+        COALESCE(SUM(medicine_charge::numeric), 0) AS medicine,
+        COALESCE(SUM(total_amount::numeric), 0) AS total,
+        COALESCE(SUM(CASE WHEN payment_status = 'settled' THEN total_amount::numeric ELSE 0 END), 0) AS settled,
+        COALESCE(SUM(CASE WHEN payment_status = 'pending' THEN total_amount::numeric ELSE 0 END), 0) AS pending
+      FROM earnings
+      WHERE created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
+      GROUP BY month, label
+      ORDER BY month ASC
+    `);
 
-  return NextResponse.json(rows.rows);
+    return NextResponse.json(rows.rows);
+  } catch (err) {
+    console.error('API /api/reports/earnings GET error:', err);
+    return NextResponse.json([]);
+  }
 }

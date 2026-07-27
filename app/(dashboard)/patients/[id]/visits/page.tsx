@@ -11,14 +11,24 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
-  const [patient] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
-  if (!patient) notFound();
+  let patient: any = null;
+  let allVisits: any[] = [];
 
-  const allVisits = await db.query.visits.findMany({
-    where: eq(visits.patientId, id),
-    orderBy: [desc(visits.visitDate)],
-    with: { treatments: true, earnings: true, followUps: true },
-  });
+  try {
+    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    patient = p;
+    if (patient) {
+      allVisits = await db.query.visits.findMany({
+        where: eq(visits.patientId, id),
+        orderBy: [desc(visits.visitDate)],
+        with: { treatments: true, earnings: true, followUps: true },
+      });
+    }
+  } catch (err) {
+    console.error('Failed to query patient visits:', err);
+  }
+
+  if (!patient) notFound();
 
   const tabs = [
     { href: `/patients/${id}`, label: 'Overview' },

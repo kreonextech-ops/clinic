@@ -23,21 +23,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Access denied' }, { status: 403 });
   }
 
-  const rows = await db
-    .select({
-      visitId: earnings.visitId,
-      patientId: patients.id,
-      patientName: patients.name,
-      patientPhone: patients.phone,
-      visitDate: visits.visitDate,
-      totalAmount: earnings.totalAmount,
-      procedureFeeBalance: earnings.procedureFeeBalance,
-    })
-    .from(earnings)
-    .innerJoin(patients, eq(patients.id, earnings.patientId))
-    .innerJoin(visits, eq(visits.id, earnings.visitId))
-    .where(eq(earnings.paymentStatus, 'pending'))
-    .orderBy(visits.visitDate);
+  try {
+    const rows = await db
+      .select({
+        visitId: earnings.visitId,
+        patientId: patients.id,
+        patientName: patients.name,
+        patientPhone: patients.phone,
+        visitDate: visits.visitDate,
+        totalAmount: earnings.totalAmount,
+        procedureFeeBalance: earnings.procedureFeeBalance,
+      })
+      .from(earnings)
+      .innerJoin(patients, eq(patients.id, earnings.patientId))
+      .innerJoin(visits, eq(visits.id, earnings.visitId))
+      .where(eq(earnings.paymentStatus, 'pending'))
+      .orderBy(visits.visitDate);
 
-  return NextResponse.json(rows);
+    return NextResponse.json(rows);
+  } catch (err) {
+    console.error('API /api/reports/pending-payments GET error:', err);
+    return NextResponse.json([]);
+  }
 }

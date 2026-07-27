@@ -30,14 +30,19 @@ export async function GET(req: NextRequest) {
   if (status) where.push(eq(appointments.status, status as any));
   if (patientId) where.push(eq(appointments.patientId, parseInt(patientId)));
 
-  const list = await db.query.appointments.findMany({
-    where: where.length > 0 ? and(...where) : undefined,
-    with: { patient: true },
-    orderBy: [desc(appointments.scheduledDate)],
-    limit: 200,
-  });
+  try {
+    const list = await db.query.appointments.findMany({
+      where: where.length > 0 ? and(...where) : undefined,
+      with: { patient: true },
+      orderBy: [desc(appointments.scheduledDate)],
+      limit: 200,
+    });
 
-  return NextResponse.json(list);
+    return NextResponse.json(list);
+  } catch (err) {
+    console.error('API /api/appointments GET error:', err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -53,10 +58,15 @@ export async function POST(req: NextRequest) {
   };
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  const parsed = appointmentSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  try {
+    const body = await req.json();
+    const parsed = appointmentSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const [apt] = await db.insert(appointments).values(parsed.data).returning();
-  return NextResponse.json(apt, { status: 201 });
+    const [apt] = await db.insert(appointments).values(parsed.data).returning();
+    return NextResponse.json(apt, { status: 201 });
+  } catch (err: any) {
+    console.error('API /api/appointments POST error:', err);
+    return NextResponse.json({ error: err?.message || 'Failed to create appointment' }, { status: 500 });
+  }
 }

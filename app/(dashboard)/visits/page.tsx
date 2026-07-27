@@ -10,11 +10,16 @@ import { EmptyState } from '@/components/shared/EmptyState';
 export const dynamic = 'force-dynamic';
 
 export default async function VisitsPage() {
-  const list = await db.query.visits.findMany({
-    orderBy: [desc(visits.visitDate)],
-    with: { patient: true, treatments: true, earnings: true },
-    limit: 200,
-  });
+  let list: any[] = [];
+  try {
+    list = await db.query.visits.findMany({
+      orderBy: [desc(visits.visitDate)],
+      with: { patient: true, treatments: true, earnings: true },
+      limit: 200,
+    });
+  } catch (err) {
+    console.error('Failed to query visits:', err);
+  }
 
   return (
     <div>

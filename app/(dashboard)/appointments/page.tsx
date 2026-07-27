@@ -18,12 +18,17 @@ export default async function AppointmentsPage({ searchParams }: Props) {
   if (date) where.push(eq(appointments.scheduledDate, date));
   if (status) where.push(eq(appointments.status, status as any));
 
-  const list = await db.query.appointments.findMany({
-    where: where.length > 0 ? and(...where) : undefined,
-    with: { patient: true },
-    orderBy: [desc(appointments.scheduledDate)],
-    limit: 200,
-  });
+  let list: any[] = [];
+  try {
+    list = await db.query.appointments.findMany({
+      where: where.length > 0 ? and(...where) : undefined,
+      with: { patient: true },
+      orderBy: [desc(appointments.scheduledDate)],
+      limit: 200,
+    });
+  } catch (err) {
+    console.error('Failed to query appointments:', err);
+  }
 
   const today = todayISO();
 

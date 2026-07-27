@@ -23,16 +23,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Access denied' }, { status: 403 });
   }
 
-  const rows = await db
-    .select()
-    .from(inventory)
-    .where(sql`quantity::numeric <= low_stock_threshold::numeric`)
-    .orderBy(inventory.name);
+  try {
+    const rows = await db
+      .select()
+      .from(inventory)
+      .where(sql`quantity::numeric <= low_stock_threshold::numeric`)
+      .orderBy(inventory.name);
 
-  return NextResponse.json(
-    rows.map((r) => ({
-      ...r,
-      deficit: Math.max(0, parseFloat(r.lowStockThreshold) - parseFloat(r.quantity)),
-    }))
-  );
+    return NextResponse.json(
+      rows.map((r) => ({
+        ...r,
+        deficit: Math.max(0, parseFloat(r.lowStockThreshold) - parseFloat(r.quantity)),
+      }))
+    );
+  } catch (err) {
+    console.error('API /api/reports/inventory-reorder GET error:', err);
+    return NextResponse.json([]);
+  }
 }

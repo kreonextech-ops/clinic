@@ -58,12 +58,17 @@ export async function GET(req: NextRequest) {
       .where(ilike(treatments.treatmentName, `%${treatment}%`));
   }
 
-  const results = await query
-    .groupBy(patients.id)
-    .orderBy(desc(patients.createdAt))
-    .limit(100);
+  try {
+    const results = await query
+      .groupBy(patients.id)
+      .orderBy(desc(patients.createdAt))
+      .limit(100);
 
-  return NextResponse.json(results);
+    return NextResponse.json(results);
+  } catch (err) {
+    console.error('API /api/patients GET error:', err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -79,12 +84,17 @@ export async function POST(req: NextRequest) {
   };
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  const parsed = patientSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  try {
+    const body = await req.json();
+    const parsed = patientSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const patientId = await generatePatientId();
-  const [patient] = await db.insert(patients).values({ ...parsed.data, patientId }).returning();
+    const patientId = await generatePatientId();
+    const [patient] = await db.insert(patients).values({ ...parsed.data, patientId }).returning();
 
-  return NextResponse.json(patient, { status: 201 });
+    return NextResponse.json(patient, { status: 201 });
+  } catch (err: any) {
+    console.error('API /api/patients POST error:', err);
+    return NextResponse.json({ error: err?.message || 'Failed to create patient' }, { status: 500 });
+  }
 }

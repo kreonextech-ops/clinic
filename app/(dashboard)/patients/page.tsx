@@ -43,7 +43,12 @@ export default async function PatientsPage({ searchParams }: Props) {
     );
   }
 
-  const list = await query.groupBy(patients.id).orderBy(desc(patients.createdAt)).limit(100);
+  let list: any[] = [];
+  try {
+    list = await query.groupBy(patients.id).orderBy(desc(patients.createdAt)).limit(100);
+  } catch (err) {
+    console.error('Failed to query patients:', err);
+  }
 
   return (
     <div>

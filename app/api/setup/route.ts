@@ -21,24 +21,29 @@ export async function POST(req: NextRequest) {
     securityAnswer2
   } = body;
 
-  // Check if users already exist
-  const [count] = await db.select({ count: sql<number>`count(*)` }).from(users);
-  if (Number(count.count) > 0) {
-    return NextResponse.json({ error: 'Users already exist. Setup not allowed.' }, { status: 400 });
+  try {
+    // Check if users already exist
+    const [count] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    if (Number(count?.count || 0) > 0) {
+      return NextResponse.json({ error: 'Users already exist. Setup not allowed.' }, { status: 400 });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const [user] = await db.insert(users).values({
+      username,
+      passwordHash,
+      clinicName: clinicName || 'Way2Smile Clinic',
+      doctorName: doctorName || 'Dr. Doctor',
+      email: email || null,
+      securityQuestion1: securityQuestion1 || null,
+      securityAnswer1: securityAnswer1 ? securityAnswer1.toLowerCase().trim() : null,
+      securityQuestion2: securityQuestion2 || null,
+      securityAnswer2: securityAnswer2 ? securityAnswer2.toLowerCase().trim() : null,
+    }).returning({ id: users.id, username: users.username });
+
+    return NextResponse.json({ ok: true, user });
+  } catch (err: any) {
+    console.error('API /api/setup POST error:', err);
+    return NextResponse.json({ error: err?.message || 'Setup failed' }, { status: 500 });
   }
-
-  const passwordHash = await bcrypt.hash(password, 12);
-  const [user] = await db.insert(users).values({
-    username,
-    passwordHash,
-    clinicName: clinicName || 'Way2Smile Clinic',
-    doctorName: doctorName || 'Dr. Doctor',
-    email: email || null,
-    securityQuestion1: securityQuestion1 || null,
-    securityAnswer1: securityAnswer1 ? securityAnswer1.toLowerCase().trim() : null,
-    securityQuestion2: securityQuestion2 || null,
-    securityAnswer2: securityAnswer2 ? securityAnswer2.toLowerCase().trim() : null,
-  }).returning({ id: users.id, username: users.username });
-
-  return NextResponse.json({ ok: true, user });
 }

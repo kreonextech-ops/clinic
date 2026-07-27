@@ -36,14 +36,24 @@ export default async function PatientBillingPage({ params }: { params: { id: str
     );
   }
 
-  const [patient] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
-  if (!patient) notFound();
+  let patient: any = null;
+  let earningsList: any[] = [];
 
-  const earningsList = await db.query.earnings.findMany({
-    where: eq(earnings.patientId, id),
-    orderBy: [desc(earnings.createdAt)],
-    with: { visit: true },
-  });
+  try {
+    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    patient = p;
+    if (patient) {
+      earningsList = await db.query.earnings.findMany({
+        where: eq(earnings.patientId, id),
+        orderBy: [desc(earnings.createdAt)],
+        with: { visit: true },
+      });
+    }
+  } catch (err) {
+    console.error('Failed to query patient billing:', err);
+  }
+
+  if (!patient) notFound();
 
   const total = earningsList.reduce((s, e) => s + parseFloat(e.totalAmount || '0'), 0);
   const settled = earningsList.filter((e) => e.paymentStatus === 'settled').reduce((s, e) => s + parseFloat(e.totalAmount || '0'), 0);

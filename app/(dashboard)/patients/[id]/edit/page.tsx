@@ -8,7 +8,13 @@ export default async function PatientEditPage({ params }: { params: { id: string
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
-  const [patient] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+  let patient: any = null;
+  try {
+    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    patient = p;
+  } catch (err) {
+    console.error('Failed to query patient for edit:', err);
+  }
   if (!patient) notFound();
 
   return (

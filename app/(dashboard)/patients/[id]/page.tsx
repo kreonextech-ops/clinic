@@ -11,27 +11,40 @@ export default async function PatientProfilePage({ params }: { params: { id: str
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
-  const [patient] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+  let patient: any = null;
+  let stats: any = { visitCount: 0, totalEarned: 0, pendingAmount: 0, overdueFollowUps: 0 };
+  let recentVisits: any[] = [];
+
+  try {
+    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    patient = p;
+
+    if (patient) {
+      const [s] = await db.select({
+        visitCount: sql<number>`count(distinct ${visits.id})`,
+        totalEarned: sql<number>`coalesce(sum(${earnings.totalAmount}::numeric), 0)`,
+        pendingAmount: sql<number>`coalesce(sum(case when ${earnings.paymentStatus} = 'pending' then ${earnings.totalAmount}::numeric else 0 end), 0)`,
+        overdueFollowUps: sql<number>`count(distinct case when ${followUps.status} = 'pending' and ${followUps.dueDate} < current_date then ${followUps.id} end)`,
+      })
+        .from(patients)
+        .leftJoin(visits, eq(visits.patientId, patients.id))
+        .leftJoin(earnings, eq(earnings.visitId, visits.id))
+        .leftJoin(followUps, eq(followUps.patientId, patients.id))
+        .where(eq(patients.id, id));
+      stats = s;
+
+      recentVisits = await db.query.visits.findMany({
+        where: eq(visits.patientId, id),
+        orderBy: [desc(visits.visitDate)],
+        limit: 5,
+        with: { treatments: true, earnings: true },
+      });
+    }
+  } catch (err) {
+    console.error('Failed to query patient profile:', err);
+  }
+
   if (!patient) notFound();
-
-  const [stats] = await db.select({
-    visitCount: sql<number>`count(distinct ${visits.id})`,
-    totalEarned: sql<number>`coalesce(sum(${earnings.totalAmount}::numeric), 0)`,
-    pendingAmount: sql<number>`coalesce(sum(case when ${earnings.paymentStatus} = 'pending' then ${earnings.totalAmount}::numeric else 0 end), 0)`,
-    overdueFollowUps: sql<number>`count(distinct case when ${followUps.status} = 'pending' and ${followUps.dueDate} < current_date then ${followUps.id} end)`,
-  })
-    .from(patients)
-    .leftJoin(visits, eq(visits.patientId, patients.id))
-    .leftJoin(earnings, eq(earnings.visitId, visits.id))
-    .leftJoin(followUps, eq(followUps.patientId, patients.id))
-    .where(eq(patients.id, id));
-
-  const recentVisits = await db.query.visits.findMany({
-    where: eq(visits.patientId, id),
-    orderBy: [desc(visits.visitDate)],
-    limit: 5,
-    with: { treatments: true, earnings: true },
-  });
 
   const tabs = [
     { href: `/patients/${id}`, label: 'Overview', active: true },
