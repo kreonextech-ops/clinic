@@ -136,7 +136,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
                     <div>
                       <p className="text-sm font-medium text-gray-800">{formatDate(v.visitDate)}</p>
                       <p className="text-xs text-gray-500">
-                        {v.treatments.map((t) => t.treatmentName).join(', ') || 'No treatments recorded'}
+                        {v.treatments.map((t: any) => t.treatmentName).join(', ') || 'No treatments recorded'}
                       </p>
                     </div>
                     {v.earnings && (

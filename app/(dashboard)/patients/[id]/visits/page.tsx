@@ -69,7 +69,7 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{formatDate(v.visitDate)}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {v.treatments.map((t) => (
+                    {v.treatments.map((t: any) => (
                       <span key={t.id} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{t.treatmentName}</span>
                     ))}
                     {v.treatments.length === 0 && <span className="text-xs text-gray-400">No treatments</span>}

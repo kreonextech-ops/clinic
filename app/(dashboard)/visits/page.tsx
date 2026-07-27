@@ -69,7 +69,7 @@ export default async function VisitsPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">{v.patient.name}</p>
                 <div className="flex flex-wrap gap-1 mt-0.5">
-                  {v.treatments.slice(0, 3).map((t) => (
+                  {v.treatments.slice(0, 3).map((t: any) => (
                     <span key={t.id} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full">
                       {t.treatmentName}
                     </span>
