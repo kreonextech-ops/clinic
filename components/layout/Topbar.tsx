@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { CommandPalette } from './CommandPalette';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard Overview',
@@ -43,40 +44,57 @@ export function Topbar() {
   });
 
   return (
-    <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20 transition-all">
-      <div className="flex items-center gap-3">
-        <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm shadow-md shadow-blue-500/20">
-          🦷
-        </div>
-        <div>
-          <h1 className="text-base font-bold text-slate-900 tracking-tight">
-            {getTitle(pathname)}
-          </h1>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {/* Date badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100/80 border border-slate-200/60 rounded-xl text-xs font-semibold text-slate-600">
-          <span>📅</span>
-          <span>{dateFormatted}</span>
-        </div>
-
-        {/* Doctor / User profile card */}
-        <div className="flex items-center gap-2.5 bg-slate-100/60 border border-slate-200/60 pl-3 pr-1.5 py-1 rounded-2xl">
-          <div className="text-right hidden md:block">
-            <p className="text-xs font-bold text-slate-900 leading-tight">
-              {(session?.user as any)?.doctorName || 'Dr. Doctor'}
-            </p>
-            <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">
-              {(session?.user as any)?.role || 'Owner'}
-            </p>
+    <>
+      <CommandPalette />
+      <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20 transition-all">
+        <div className="flex items-center gap-3">
+          <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm shadow-md shadow-blue-500/20">
+            🦷
           </div>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-blue-500/20">
-            {((session?.user as any)?.doctorName || 'D').charAt(0).toUpperCase()}
+          <div>
+            <h1 className="text-base font-bold text-slate-900 tracking-tight">
+              {getTitle(pathname)}
+            </h1>
           </div>
         </div>
-      </div>
-    </header>
+
+        <div className="flex items-center gap-3">
+          {/* Global Search Button */}
+          <button
+            onClick={() => {
+              const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
+              window.dispatchEvent(event);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/60 rounded-xl text-xs font-semibold text-slate-500 transition-all"
+          >
+            <span>🔍 Search...</span>
+            <kbd className="text-[10px] font-bold bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
+              Ctrl+K
+            </kbd>
+          </button>
+
+          {/* Date badge */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100/80 border border-slate-200/60 rounded-xl text-xs font-semibold text-slate-600">
+            <span>📅</span>
+            <span>{dateFormatted}</span>
+          </div>
+
+          {/* Doctor / User profile card */}
+          <div className="flex items-center gap-2.5 bg-slate-100/60 border border-slate-200/60 pl-3 pr-1.5 py-1 rounded-2xl">
+            <div className="text-right hidden md:block">
+              <p className="text-xs font-bold text-slate-900 leading-tight">
+                {(session?.user as any)?.doctorName || 'Dr. Doctor'}
+              </p>
+              <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">
+                {(session?.user as any)?.role || 'Owner'}
+              </p>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-blue-500/20">
+              {((session?.user as any)?.doctorName || 'D').charAt(0).toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }
