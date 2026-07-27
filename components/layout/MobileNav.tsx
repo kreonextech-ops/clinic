@@ -11,26 +11,35 @@ export function MobileNav() {
   const { data: session } = useSession();
 
   const allItems = [
-    { href: '/dashboard', label: 'Home', icon: '🏠', show: true },
-    { href: '/patients', label: 'Patients', icon: '👤', show: hasPermission(session, 'can_view_patients') },
+    { href: '/dashboard', label: 'Home', icon: '⚡', show: true },
+    { href: '/patients', label: 'Patients', icon: '👥', show: hasPermission(session, 'can_view_patients') },
     { href: '/appointments', label: 'Appts', icon: '📅', show: hasPermission(session, 'can_view_appointments') },
+    { href: '/visits', label: 'Visits', icon: '🩺', show: hasPermission(session, 'can_view_visits') },
     { href: '/inventory', label: 'Stock', icon: '📦', show: hasPermission(session, 'can_manage_inventory') },
-    { href: '/reports', label: 'Reports', icon: '📊', show: hasPermission(session, 'can_view_reports') },
   ].filter((i: any) => i.show).slice(0, 5);
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex">
-      {allItems.map((item: any) => {
-        const active = pathname === item.href || pathname.startsWith(item.href + '/');
-        return (
-          <Link key={item.href} href={item.href}
-            className={cn('flex-1 flex flex-col items-center py-2 text-xs font-medium transition-colors',
-              active ? 'text-blue-600' : 'text-gray-500')}>
-            <span className="text-xl mb-0.5">{item.icon}</span>
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40">
+      <nav className="bg-slate-950/90 backdrop-blur-2xl border border-slate-800/80 rounded-2xl p-1.5 shadow-2xl flex items-center justify-around">
+        {allItems.map((item: any) => {
+          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex-1 flex flex-col items-center py-2 px-1 rounded-xl text-[11px] font-semibold transition-all duration-200',
+                active
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 font-bold scale-105'
+                  : 'text-slate-400 hover:text-slate-200'
+              )}
+            >
+              <span className="text-base mb-0.5">{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
