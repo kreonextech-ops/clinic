@@ -121,7 +121,12 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="email" value={profileForm.email} onChange={(e) => setProfileForm((p) => ({ ...p, email: e.target.value }))} className={inputClass} />
+              <input type="email" value={profileForm.email} onChange={(e) => setProfileForm((p: any) => ({ ...p, email: e.target.value }))} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Clinic Logo Image URL</label>
+              <input type="url" placeholder="https://example.com/logo.png" value={(profileForm as any).logoUrl || ''} onChange={(e) => setProfileForm((p: any) => ({ ...p, logoUrl: e.target.value }))} className={inputClass} />
+              <p className="text-[11px] text-gray-400 mt-1">Direct image URL for your clinic logo (displays on invoices & navigation sidebar)</p>
             </div>
             <button type="submit" disabled={saving === 'profile'} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
               {saving === 'profile' ? 'Saving...' : 'Save Profile'}

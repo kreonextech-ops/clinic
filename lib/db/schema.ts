@@ -28,6 +28,7 @@ export const users = pgTable('users', {
   clinicName: varchar('clinic_name', { length: 200 }).notNull().default('Dental Clinic'),
   doctorName: varchar('doctor_name', { length: 200 }).notNull().default('Dr. Doctor'),
   email: varchar('email', { length: 200 }),
+  logoUrl: text('logo_url'),
   securityQuestion1: text('security_question_1'),
   securityAnswer1: text('security_answer_1'),
   securityQuestion2: text('security_question_2'),

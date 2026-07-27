@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
           clinicName: users.clinicName,
           doctorName: users.doctorName,
           email: users.email,
+          logoUrl: users.logoUrl,
           securityQuestion1: users.securityQuestion1,
           securityQuestion2: users.securityQuestion2,
         })
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
     clinicName: 'Way2Smile Clinic',
     doctorName: 'Dr. Doctor',
     email: 'doctor@way2smile.com',
+    logoUrl: null,
     securityQuestion1: '',
     securityQuestion2: '',
   });
@@ -80,11 +82,11 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const ownerId = parseInt(userIdStr.replace('owner-', ''), 10);
-    const { clinicName, doctorName, email } = body;
+    const { clinicName, doctorName, email, logoUrl } = body;
 
     await db
       .update(users)
-      .set({ clinicName, doctorName, email, updatedAt: new Date() })
+      .set({ clinicName, doctorName, email, logoUrl, updatedAt: new Date() })
       .where(eq(users.id, ownerId));
 
     return NextResponse.json({ success: true });

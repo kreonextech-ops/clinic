@@ -45,9 +45,13 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="px-6 py-6 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
-            <span className="text-xl">🦷</span>
-          </div>
+          {(session?.user as any)?.logoUrl ? (
+            <img src={(session?.user as any).logoUrl} alt="Clinic Logo" className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0" />
+          ) : (
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
+              <span className="text-xl">🦷</span>
+            </div>
+          )}
           <div className="min-w-0">
             <h2 className="text-sm font-extrabold text-slate-900 tracking-tight truncate">
               {(session?.user as any)?.clinicName || 'Way2Smile Clinic'}

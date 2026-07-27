@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
             username: owner.username,
             clinicName: owner.clinicName,
             doctorName: owner.doctorName,
+            logoUrl: owner.logoUrl || null,
             role: 'owner',
             permissions: {},   // owner has all — checked via isOwner()
             staffId: null,
@@ -61,8 +62,8 @@ export const authOptions: NextAuthOptions = {
 
         // Get clinic name from owner record
         const [ownerRecord] = member.userId
-          ? await db.select({ id: users.id, clinicName: users.clinicName }).from(users).where(eq(users.id, member.userId)).limit(1)
-          : await db.select({ id: users.id, clinicName: users.clinicName }).from(users).limit(1);
+          ? await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl }).from(users).where(eq(users.id, member.userId)).limit(1)
+          : await db.select({ id: users.id, clinicName: users.clinicName, logoUrl: users.logoUrl }).from(users).limit(1);
 
         return {
           id: `staff-${member.id}`,
@@ -72,6 +73,7 @@ export const authOptions: NextAuthOptions = {
           username: member.username,
           clinicName: ownerRecord?.clinicName || 'Dental Clinic',
           doctorName: member.displayName,
+          logoUrl: ownerRecord?.logoUrl || null,
           role: member.role,
           permissions: parsePermissions(member.permissions),
           staffId: member.id,
@@ -87,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         token.username = (user as any).username;
         token.clinicName = (user as any).clinicName;
         token.doctorName = (user as any).doctorName;
+        token.logoUrl = (user as any).logoUrl;
         token.role = (user as any).role;
         token.permissions = (user as any).permissions;
         token.staffId = (user as any).staffId;
@@ -100,6 +103,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).username = token.username;
         (session.user as any).clinicName = token.clinicName;
         (session.user as any).doctorName = token.doctorName;
+        (session.user as any).logoUrl = token.logoUrl;
         (session.user as any).role = token.role;
         (session.user as any).permissions = token.permissions;
         (session.user as any).staffId = token.staffId;
