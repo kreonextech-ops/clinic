@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 
 // One-time setup endpoint to create the doctor account
 // DISABLE OR DELETE after first use in production
@@ -22,10 +22,14 @@ export async function POST(req: NextRequest) {
   } = body;
 
   try {
-    // Check if users already exist
-    const [count] = await db.select({ count: sql<number>`count(*)` }).from(users);
-    if (Number(count?.count || 0) > 0) {
-      return NextResponse.json({ error: 'Users already exist. Setup not allowed.' }, { status: 400 });
+    // Check if username already exists in users or staff
+    const [existingUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username));
+
+    if (existingUser) {
+      return NextResponse.json({ error: 'Username is already registered. Choose another.' }, { status: 400 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);

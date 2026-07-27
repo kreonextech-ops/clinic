@@ -41,12 +41,11 @@ export const users = pgTable('users', {
 // ─── 2. Staff (Sub-accounts created by owner) ─────────────────────────────────
 export const staff = pgTable('staff', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   username: varchar('username', { length: 50 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   displayName: varchar('display_name', { length: 200 }).notNull(),
-  // 'assistant' | 'receptionist' — owner role is only in users table
   role: varchar('role', { length: 30 }).notNull().default('assistant'),
-  // JSON: StaffPermissions — granular overrides on top of role defaults
   permissions: text('permissions').notNull().default('{}'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -56,6 +55,7 @@ export const staff = pgTable('staff', {
 // ─── 3. Patients ──────────────────────────────────────────────────────────────
 export const patients = pgTable('patients', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   patientId: varchar('patient_id', { length: 20 }).notNull().unique(),
   name: varchar('name', { length: 200 }).notNull(),
   age: integer('age'),
@@ -70,6 +70,7 @@ export const patients = pgTable('patients', {
 // ─── 4. Appointments ──────────────────────────────────────────────────────────
 export const appointments = pgTable('appointments', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   patientId: integer('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
   type: appointmentTypePgEnum('type').notNull().default('scheduled'),
   status: appointmentStatusPgEnum('status').notNull().default('upcoming'),
@@ -137,6 +138,7 @@ export const followUps = pgTable('follow_ups', {
 // ─── 9. Inventory ─────────────────────────────────────────────────────────────
 export const inventory = pgTable('inventory', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 200 }).notNull(),
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull().default('0'),
   unit: varchar('unit', { length: 50 }).notNull().default('piece'),

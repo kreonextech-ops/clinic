@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
           if (!valid) return null;
           return {
             id: `owner-${owner.id}`,
+            userId: owner.id,
             name: owner.doctorName,
             email: owner.email ?? undefined,
             username: owner.username,
@@ -59,10 +60,13 @@ export const authOptions: NextAuthOptions = {
         if (!valid) return null;
 
         // Get clinic name from owner record
-        const [ownerRecord] = await db.select({ clinicName: users.clinicName }).from(users).limit(1);
+        const [ownerRecord] = member.userId
+          ? await db.select({ id: users.id, clinicName: users.clinicName }).from(users).where(eq(users.id, member.userId)).limit(1)
+          : await db.select({ id: users.id, clinicName: users.clinicName }).from(users).limit(1);
 
         return {
           id: `staff-${member.id}`,
+          userId: ownerRecord?.id || 1,
           name: member.displayName,
           email: undefined,
           username: member.username,
@@ -79,6 +83,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.userId = (user as any).userId;
         token.username = (user as any).username;
         token.clinicName = (user as any).clinicName;
         token.doctorName = (user as any).doctorName;
@@ -91,6 +96,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).userId = token.userId;
         (session.user as any).username = token.username;
         (session.user as any).clinicName = token.clinicName;
         (session.user as any).doctorName = token.doctorName;
