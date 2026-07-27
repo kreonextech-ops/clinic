@@ -25,11 +25,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Username and password are required.' }, { status: 400 });
     }
 
+    const cleanUsername = username.trim();
+
     // Check if username already exists
     const [existingUser] = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.username, username));
+      .where(eq(users.username, cleanUsername));
 
     if (existingUser) {
       return NextResponse.json({ error: 'Username is already registered. Choose another.' }, { status: 400 });
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
       : null;
 
     const [user] = await db.insert(users).values({
-      username,
+      username: cleanUsername,
       passwordHash,
       clinicName: clinicName || 'Dental Clinic',
       doctorName: doctorName || 'Dr. Doctor',

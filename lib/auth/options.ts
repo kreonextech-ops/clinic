@@ -22,12 +22,14 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
 
+        const inputUsername = credentials.username.trim();
+
         try {
           // 1. Check owner account first
           const [owner] = await db
             .select()
             .from(users)
-            .where(eq(users.username, credentials.username))
+            .where(eq(users.username, inputUsername))
             .limit(1);
 
           if (owner) {

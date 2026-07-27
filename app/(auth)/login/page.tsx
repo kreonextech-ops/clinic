@@ -19,20 +19,19 @@ export default function LoginPage() {
 
     try {
       const res = await signIn('credentials', {
-        username,
+        username: username.trim(),
         password,
         redirect: false,
       });
 
       if (res?.error) {
-        setError('Invalid username or password');
+        setError('Invalid username or password. Please check your credentials.');
         setLoading(false);
       } else {
-        router.push('/dashboard');
-        router.refresh();
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred during login.');
       setLoading(false);
     }
   };
@@ -49,7 +48,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-3xl shadow-xl shadow-blue-500/25 mb-4">
             🦷
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Way2Smile Clinic</h1>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Clinic Management System</h1>
           <p className="text-sm font-medium text-slate-400 mt-1">Multi-Tenant Dental Practice Portal</p>
         </div>
 
