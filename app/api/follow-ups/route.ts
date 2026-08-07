@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { followUps } from '@/lib/db/schema';
-import { eq, and, lt, desc } from 'drizzle-orm';
+import { followUps, patients } from '@/lib/db/schema';
+import { eq, and, lt, desc, inArray } from 'drizzle-orm';
 import { todayISO } from '@/lib/utils/formatDate';
 
 export async function GET(req: NextRequest) {
@@ -20,9 +20,16 @@ export async function GET(req: NextRequest) {
     await db
       .update(followUps)
       .set({ status: 'overdue', updatedAt: new Date() })
-      .where(and(eq(followUps.status, 'pending'), lt(followUps.dueDate, today)));
+      .where(and(
+        eq(followUps.status, 'pending'),
+        lt(followUps.dueDate, today),
+        inArray(followUps.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
+      ));
 
-    const where = status ? eq(followUps.status, status as any) : undefined;
+    const where = and(
+      status ? eq(followUps.status, status as any) : undefined,
+      inArray(followUps.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
+    );
 
     const list = await db.query.followUps.findMany({
       where,

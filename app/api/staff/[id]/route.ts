@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { staff } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { isOwner } from '@/lib/auth/permissions';
 import bcrypt from 'bcryptjs';
 
@@ -40,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const [updated] = await db
     .update(staff)
     .set(update)
-    .where(eq(staff.id, id))
+    .where(and(eq(staff.id, id), eq(staff.userId, session.user.userId)))
     .returning({
       id: staff.id,
       username: staff.username,
@@ -61,6 +61,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: 'Owner access required' }, { status: 403 });
   }
 
-  await db.delete(staff).where(eq(staff.id, parseInt(params.id)));
+  await db.delete(staff).where(and(eq(staff.id, parseInt(params.id)), eq(staff.userId, session.user.userId)));
   return NextResponse.json({ ok: true });
 }

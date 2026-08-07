@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { inventory } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { inventoryUpdateSchema } from '@/lib/validations/inventory';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -22,7 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (parsed.data.lowStockThreshold !== undefined) updateData.lowStockThreshold = String(parsed.data.lowStockThreshold);
   if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
 
-  const [updated] = await db.update(inventory).set(updateData).where(eq(inventory.id, parseInt(params.id))).returning();
+  const [updated] = await db.update(inventory).set(updateData).where(and(eq(inventory.id, parseInt(params.id)), eq(inventory.userId, session.user.userId))).returning();
   return NextResponse.json(updated);
 }
 
@@ -30,6 +30,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await db.delete(inventory).where(eq(inventory.id, parseInt(params.id)));
+  await db.delete(inventory).where(and(eq(inventory.id, parseInt(params.id)), eq(inventory.userId, session.user.userId)));
   return NextResponse.json({ ok: true });
 }

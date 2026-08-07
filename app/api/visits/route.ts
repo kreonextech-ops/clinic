@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { visits, treatments, earnings, followUps, inventoryUsed, inventory, appointments } from '@/lib/db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { visits, treatments, earnings, followUps, inventoryUsed, inventory, appointments, patients } from '@/lib/db/schema';
+import { eq, desc, sql, inArray, and } from 'drizzle-orm';
 import { visitSchema, treatmentSchema, inventoryUsedSchema } from '@/lib/validations/visit';
 import { earningsSchema } from '@/lib/validations/earnings';
 import { followUpSchema } from '@/lib/validations/follow-up';
@@ -27,7 +27,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const list = await db.query.visits.findMany({
-      where: patientId ? eq(visits.patientId, parseInt(patientId)) : undefined,
+      where: and(
+        inArray(visits.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId))),
+        patientId ? eq(visits.patientId, parseInt(patientId)) : undefined
+      ),
       with: { patient: true, treatments: true, earnings: true },
       orderBy: [desc(visits.visitDate)],
       limit: 100,
@@ -50,6 +53,9 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
     const { visit: visitData, treatments: treatmentData, earnings: earningsData, followUps: followUpData, inventoryUsed: inventoryUsedData } = parsed.data;
+
+    const [patient] = await db.select().from(patients).where(and(eq(patients.id, visitData.patientId), eq(patients.userId, session.user.userId))).limit(1);
+    if (!patient) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     // Transaction-like: create all in order
     const [visit] = await db.insert(visits).values(visitData).returning();

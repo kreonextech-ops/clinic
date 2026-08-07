@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth/options';
 import { hasPermission } from '@/lib/auth/permissions';
 import { db } from '@/lib/db';
 import { earnings, patients, visits } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       .from(earnings)
       .innerJoin(patients, eq(patients.id, earnings.patientId))
       .innerJoin(visits, eq(visits.id, earnings.visitId))
-      .where(eq(earnings.paymentStatus, 'pending'))
+      .where(and(eq(earnings.paymentStatus, 'pending'), eq(patients.userId, session.user.userId)))
       .orderBy(visits.visitDate);
 
     return NextResponse.json(rows);

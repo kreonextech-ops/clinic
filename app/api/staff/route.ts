@@ -7,7 +7,7 @@ import { staff } from '@/lib/db/schema';
 import { isOwner } from '@/lib/auth/permissions';
 import { ROLE_DEFAULTS } from '@/lib/auth/permissions';
 import bcrypt from 'bcryptjs';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
         createdAt: staff.createdAt,
       })
       .from(staff)
+      .where(eq(staff.userId, session.user.userId))
       .orderBy(desc(staff.createdAt));
 
     return NextResponse.json(
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       displayName,
       role,
       permissions: JSON.stringify(defaultPerms),
+      userId: session.user.userId,
     })
     .returning({
       id: staff.id,

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const subscription = await req.json();
-  const userId = parseInt((session.user as any).id);
+  const userId = parseInt((session.user as any).userId);
 
   await db
     .update(users)
@@ -25,7 +25,7 @@ export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const userId = parseInt((session.user as any).id);
+  const userId = parseInt((session.user as any).userId);
   await db.update(users).set({ pushSubscription: null, updatedAt: new Date() }).where(eq(users.id, userId));
   return NextResponse.json({ ok: true });
 }

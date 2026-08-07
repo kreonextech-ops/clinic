@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { files } from '@/lib/db/schema';
+import { files, patients } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
@@ -71,6 +72,9 @@ export async function POST(req: NextRequest) {
 
   const ext = file.name.split('.').pop() || 'bin';
   const key = `patients/${patientId}/${uuidv4()}.${ext}`;
+
+  const [patient] = await db.select().from(patients).where(and(eq(patients.id, parseInt(patientId)), eq(patients.userId, session.user.userId))).limit(1);
+  if (!patient) return NextResponse.json({ error: 'Unauthorized patient' }, { status: 403 });
 
   let fileUrl: string;
   try {

@@ -27,8 +27,10 @@ export async function GET(req: NextRequest) {
         COALESCE(SUM(total_amount::numeric), 0) AS total,
         COALESCE(SUM(CASE WHEN payment_status = 'settled' THEN total_amount::numeric ELSE 0 END), 0) AS settled,
         COALESCE(SUM(CASE WHEN payment_status = 'pending' THEN total_amount::numeric ELSE 0 END), 0) AS pending
-      FROM earnings
-      WHERE created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
+      FROM earnings e
+      JOIN patients p ON e.patient_id = p.id
+      WHERE e.created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
+      AND p.user_id = ${session.user.userId}
       GROUP BY month, label
       ORDER BY month ASC
     `);

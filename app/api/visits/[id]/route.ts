@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { visits, earnings, treatments } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { visits, earnings, treatments, patients } from '@/lib/db/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 import { earningsSchema } from '@/lib/validations/earnings';
 import { z } from 'zod';
 
@@ -19,7 +19,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const visit = await db.query.visits.findFirst({
-    where: eq(visits.id, parseInt(params.id)),
+    where: and(
+      eq(visits.id, parseInt(params.id)),
+      inArray(visits.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
+    ),
     with: {
       patient: true,
       treatments: true,
@@ -45,7 +48,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   // Update visit notes
   await db.update(visits)
     .set({ complaints: complaints ?? null, doctorNotes: doctorNotes ?? null, updatedAt: new Date() })
-    .where(eq(visits.id, visitId));
+    .where(and(
+      eq(visits.id, visitId),
+      inArray(visits.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
+    ));
 
   // Update treatments if provided (replace all)
   if (Array.isArray(treatmentsData)) {
@@ -102,6 +108,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await db.delete(visits).where(eq(visits.id, parseInt(params.id)));
+  await db.delete(visits).where(and(
+    eq(visits.id, parseInt(params.id)),
+    inArray(visits.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
+  ));
   return NextResponse.json({ ok: true });
 }

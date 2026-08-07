@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { patients, visits, treatments } from '@/lib/db/schema';
-import { ilike, or, eq, desc, sql } from 'drizzle-orm';
+import { ilike, or, eq, desc, sql, and } from 'drizzle-orm';
 import { patientSchema } from '@/lib/validations/patient';
 import { generatePatientId } from '@/lib/utils/generatePatientId';
 
@@ -36,12 +36,17 @@ export async function GET(req: NextRequest) {
 
   if (q) {
     query = query.where(
-      or(
-        ilike(patients.name, `%${q}%`),
-        ilike(patients.phone, `%${q}%`),
-        ilike(patients.patientId, `%${q}%`)
+      and(
+        eq(patients.userId, session.user.userId),
+        or(
+          ilike(patients.name, `%${q}%`),
+          ilike(patients.phone, `%${q}%`),
+          ilike(patients.patientId, `%${q}%`)
+        )
       )
     );
+  } else {
+    query = query.where(eq(patients.userId, session.user.userId));
   }
 
   if (treatment) {
@@ -72,7 +77,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
     const patientId = await generatePatientId();
-    const [patient] = await db.insert(patients).values({ ...parsed.data, patientId }).returning();
+    const [patient] = await db.insert(patients).values({ ...parsed.data, patientId, userId: session.user.userId }).returning();
 
     return NextResponse.json(patient, { status: 201 });
   } catch (err: any) {

@@ -4,14 +4,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { patients } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { patientSchema } from '@/lib/validations/patient';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const [patient] = await db.select().from(patients).where(eq(patients.id, parseInt(params.id))).limit(1);
+  const [patient] = await db.select().from(patients).where(and(eq(patients.id, parseInt(params.id)), eq(patients.userId, session.user.userId))).limit(1);
   if (!patient) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   return NextResponse.json(patient);
@@ -28,7 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const [updated] = await db
     .update(patients)
     .set({ ...parsed.data, updatedAt: new Date() })
-    .where(eq(patients.id, parseInt(params.id)))
+    .where(and(eq(patients.id, parseInt(params.id)), eq(patients.userId, session.user.userId)))
     .returning();
 
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -39,6 +39,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await db.delete(patients).where(eq(patients.id, parseInt(params.id)));
+  await db.delete(patients).where(and(eq(patients.id, parseInt(params.id)), eq(patients.userId, session.user.userId)));
   return NextResponse.json({ ok: true });
 }

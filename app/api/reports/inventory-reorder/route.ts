@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth/options';
 import { hasPermission } from '@/lib/auth/permissions';
 import { db } from '@/lib/db';
 import { inventory } from '@/lib/db/schema';
-import { sql } from 'drizzle-orm';
+import { sql, eq, and } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const rows = await db
       .select()
       .from(inventory)
-      .where(sql`quantity::numeric <= low_stock_threshold::numeric`)
+      .where(and(sql`quantity::numeric <= low_stock_threshold::numeric`, eq(inventory.userId, session.user.userId)))
       .orderBy(inventory.name);
 
     return NextResponse.json(

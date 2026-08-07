@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status');
   const patientId = searchParams.get('patientId');
 
-  const where: any[] = [];
+  const where: any[] = [eq(appointments.userId, session.user.userId)];
   if (date) where.push(eq(appointments.scheduledDate, date));
   if (status) where.push(eq(appointments.status, status as any));
   if (patientId) where.push(eq(appointments.patientId, parseInt(patientId)));
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const parsed = appointmentSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-    const [apt] = await db.insert(appointments).values(parsed.data).returning();
+    const [apt] = await db.insert(appointments).values({ ...parsed.data, userId: session.user.userId }).returning();
     return NextResponse.json(apt, { status: 201 });
   } catch (err: any) {
     console.error('API /api/appointments POST error:', err);

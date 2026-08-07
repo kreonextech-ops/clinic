@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { inventory } from '@/lib/db/schema';
-import { asc, sql } from 'drizzle-orm';
+import { asc, sql, eq } from 'drizzle-orm';
 import { inventorySchema } from '@/lib/validations/inventory';
 
 export async function GET(req: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const lowStock = searchParams.get('lowStock');
 
   try {
-    let list = await db.select().from(inventory).orderBy(asc(inventory.name));
+    let list = await db.select().from(inventory).where(eq(inventory.userId, session.user.userId)).orderBy(asc(inventory.name));
 
     if (lowStock === '1') {
       list = list.filter((i: any) => parseFloat(i.quantity) <= parseFloat(i.lowStockThreshold));
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       ...parsed.data,
       quantity: String(parsed.data.quantity),
       lowStockThreshold: String(parsed.data.lowStockThreshold),
+      userId: session.user.userId,
     }).returning();
 
     return NextResponse.json(item, { status: 201 });
