@@ -1,11 +1,12 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { hasPermission } from '@/lib/auth/permissions';
 import { db } from '@/lib/db';
-import { earnings, patients, visits } from '@/lib/db/schema';
-import { eq, and, gte, lt } from 'drizzle-orm';
+import { payments, patients, visits, earnings } from '@/lib/db/schema';
+import { eq, and, gte, lt, desc } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -17,10 +18,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const month = searchParams.get('month'); // YYYY-MM or 'all'
 
-  let conditions = [
-    eq(earnings.paymentStatus, 'pending'), 
-    eq(patients.userId, session.user.userId)
-  ];
+  let conditions = [eq(patients.userId, session.user.userId)];
 
   if (month && month !== 'all') {
     const startDate = `${month}-01`;
@@ -28,30 +26,34 @@ export async function GET(req: NextRequest) {
     dateObj.setMonth(dateObj.getMonth() + 1);
     const endDate = dateObj.toISOString().slice(0, 10);
     
-    conditions.push(gte(visits.visitDate, startDate));
-    conditions.push(lt(visits.visitDate, endDate));
+    conditions.push(gte(payments.paymentDate, startDate));
+    conditions.push(lt(payments.paymentDate, endDate));
   }
 
   try {
     const rows = await db
       .select({
-        visitId: earnings.visitId,
+        paymentId: payments.id,
+        amount: payments.amount,
+        paymentDate: payments.paymentDate,
+        paymentMethod: payments.paymentMethod,
+        notes: payments.notes,
+        visitId: visits.id,
+        visitDate: visits.visitDate,
         patientId: patients.id,
         patientName: patients.name,
-        patientPhone: patients.phone,
-        visitDate: visits.visitDate,
-        totalAmount: earnings.totalAmount,
-        procedureFeeBalance: earnings.procedureFeeBalance,
+        consultationFee: earnings.consultationFee,
       })
-      .from(earnings)
-      .innerJoin(patients, eq(patients.id, earnings.patientId))
-      .innerJoin(visits, eq(visits.id, earnings.visitId))
+      .from(payments)
+      .innerJoin(visits, eq(visits.id, payments.visitId))
+      .innerJoin(patients, eq(patients.id, visits.patientId))
+      .leftJoin(earnings, eq(earnings.visitId, visits.id))
       .where(and(...conditions))
-      .orderBy(visits.visitDate);
+      .orderBy(desc(payments.paymentDate), desc(payments.id));
 
     return NextResponse.json(rows);
   } catch (err) {
-    console.error('API /api/reports/pending-payments GET error:', err);
+    console.error('API /api/reports/settled-details GET error:', err);
     return NextResponse.json([]);
   }
 }

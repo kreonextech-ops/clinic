@@ -23,14 +23,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       eq(visits.id, parseInt(params.id)),
       inArray(visits.patientId, db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId)))
     ),
-    with: {
-      patient: true,
-      treatments: true,
-      earnings: true,
-      followUps: true,
-      inventoryUsed: { with: { item: true } },
-      files: true,
-    },
+      with: {
+        patient: true,
+        treatments: true,
+        earnings: true,
+        payments: { orderBy: (p, { desc }) => [desc(p.paymentDate), desc(p.createdAt)] },
+        followUps: true,
+        inventoryUsed: { with: { item: true } },
+        files: true,
+      },
   });
 
   if (!visit) return NextResponse.json({ error: 'Not found' }, { status: 404 });

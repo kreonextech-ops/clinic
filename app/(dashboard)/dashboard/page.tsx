@@ -1,10 +1,11 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { appointments, earnings, followUps, inventory } from '@/lib/db/schema';
+import { appointments, earnings, followUps, inventory, visits, payments, patients } from '@/lib/db/schema';
 import { eq, and, gte, lt, sql } from 'drizzle-orm';
 import { todayISO } from '@/lib/utils/formatDate';
 import { hasPermission } from '@/lib/auth/permissions';
+import Link from 'next/link';
 import { TodaySchedule } from '@/components/dashboard/TodaySchedule';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { EarningsSummary } from '@/components/dashboard/EarningsSummary';
@@ -12,41 +13,68 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 
 async function getDashboardData(canViewEarnings: boolean) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) throw new Error('Unauthorized');
+    const ownerId = Number((session.user as any).userId);
+
     const today = todayISO();
     const monthStart = today.slice(0, 7) + '-01';
 
     const [todayAppts, overdueFollowUps, lowStock, pending] = await Promise.all([
       db.query.appointments.findMany({
-        where: and(eq(appointments.scheduledDate, today), eq(appointments.status, 'upcoming')),
+        where: and(eq(appointments.scheduledDate, today), eq(appointments.status, 'upcoming'), eq(appointments.userId, ownerId)),
         with: { patient: true },
         orderBy: (a, { asc }) => [asc(a.scheduledTime)],
       }),
-      db.select({ count: sql<number>`count(*)` }).from(followUps)
-        .where(and(eq(followUps.status, 'pending'), lt(followUps.dueDate, today))),
-      db.select({ count: sql<number>`count(*)` }).from(inventory)
-        .where(sql`quantity::numeric <= low_stock_threshold::numeric`),
-      db.select({ count: sql<number>`count(*)` }).from(earnings).where(eq(earnings.paymentStatus, 'pending')),
+      db.select({ count: sql<number>`count(*)` })
+        .from(followUps)
+        .innerJoin(patients, eq(patients.id, followUps.patientId))
+        .where(and(eq(followUps.status, 'pending'), lt(followUps.dueDate, today), eq(patients.userId, ownerId))),
+      db.select({ count: sql<number>`count(*)` })
+        .from(inventory)
+        .where(and(sql`quantity::numeric <= low_stock_threshold::numeric`, eq(inventory.userId, ownerId))),
+      db.select({ count: sql<number>`count(*)` })
+        .from(earnings)
+        .innerJoin(patients, eq(patients.id, earnings.patientId))
+        .where(and(eq(earnings.paymentStatus, 'pending'), eq(patients.userId, ownerId))),
     ]);
 
-    let monthEarnings = [{ total: 0, settled: 0, pending: 0 }];
-    let todayEarnings = [{ total: 0 }];
+    let monthTotal = 0;
+    let monthSettled = 0;
+    let monthPending = 0;
+    let todayTotal = 0;
 
     if (canViewEarnings) {
-      [monthEarnings, todayEarnings] = await Promise.all([
+      const [earningsAgg, paymentsAgg, todayAgg] = await Promise.all([
         db.select({
-          total: sql<number>`coalesce(sum(total_amount::numeric), 0)`,
-          settled: sql<number>`coalesce(sum(case when payment_status = 'settled' then total_amount::numeric else 0 end), 0)`,
-          pending: sql<number>`coalesce(sum(case when payment_status = 'pending' then total_amount::numeric else 0 end), 0)`,
-        }).from(earnings).where(gte(earnings.createdAt, new Date(monthStart))),
-        db.select({ total: sql<number>`coalesce(sum(total_amount::numeric), 0)` })
-          .from(earnings).where(gte(earnings.createdAt, new Date(today))),
+          total: sql<number>`coalesce(sum(earnings.total_amount::numeric), 0)`,
+          pending: sql<number>`coalesce(sum(case when earnings.payment_status = 'pending' then earnings.procedure_fee_balance::numeric else 0 end), 0)`,
+        })
+          .from(earnings)
+          .innerJoin(patients, eq(patients.id, earnings.patientId))
+          .leftJoin(visits, eq(earnings.visitId, visits.id))
+          .where(and(gte(visits.visitDate, monthStart), eq(patients.userId, ownerId))),
+        db.select({ settled: sql<number>`coalesce(sum(payments.amount::numeric), 0)` })
+          .from(payments)
+          .innerJoin(patients, eq(patients.id, payments.patientId))
+          .where(and(gte(payments.paymentDate, monthStart), eq(patients.userId, ownerId))),
+        db.select({ total: sql<number>`coalesce(sum(earnings.total_amount::numeric), 0)` })
+          .from(earnings)
+          .innerJoin(patients, eq(patients.id, earnings.patientId))
+          .leftJoin(visits, eq(earnings.visitId, visits.id))
+          .where(and(eq(visits.visitDate, today), eq(patients.userId, ownerId))),
       ]);
+
+      monthTotal = Number(earningsAgg[0]?.total || 0);
+      monthPending = Number(earningsAgg[0]?.pending || 0);
+      monthSettled = Number(paymentsAgg[0]?.settled || 0);
+      todayTotal = Number(todayAgg[0]?.total || 0);
     }
 
     return {
       todayAppts,
-      month: monthEarnings[0] || { total: 0, settled: 0, pending: 0 },
-      todayTotal: Number(todayEarnings[0]?.total || 0),
+      month: { total: monthTotal, settled: monthSettled, pending: monthPending },
+      todayTotal,
       overdueFollowUps: Number(overdueFollowUps[0]?.count || 0),
       lowStock: Number(lowStock[0]?.count || 0),
       pendingPayments: Number(pending[0]?.count || 0),
@@ -85,6 +113,7 @@ export default async function DashboardPage() {
       gradient: 'from-rose-600 to-amber-500',
       badge: 'Requires Action',
       bgGlow: 'bg-rose-500/10 border-rose-500/20',
+      href: '/follow-ups',
     },
     {
       label: 'Low Stock Alerts',
@@ -93,6 +122,7 @@ export default async function DashboardPage() {
       gradient: 'from-amber-500 to-orange-600',
       badge: 'Inventory',
       bgGlow: 'bg-amber-500/10 border-amber-500/20',
+      href: '/reports/inventory-reorder',
     },
     ...(canViewEarnings ? [{
       label: 'Pending Balances',
@@ -101,6 +131,7 @@ export default async function DashboardPage() {
       gradient: 'from-indigo-600 to-violet-600',
       badge: 'Finance',
       bgGlow: 'bg-indigo-500/10 border-indigo-500/20',
+      href: '/reports/pending-payments',
     }] : []),
   ];
 
@@ -129,27 +160,43 @@ export default async function DashboardPage() {
 
       {/* Modern Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {statCards.map((s: any) => (
-          <div
-            key={s.label}
-            className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl p-2.5 rounded-xl bg-slate-100/80 group-hover:scale-110 transition-transform">
-                {s.icon}
-              </span>
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${s.bgGlow} text-slate-700`}>
-                {s.badge}
-              </span>
+        {statCards.map((s: any) => {
+          const content = (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-2xl p-2.5 rounded-xl bg-slate-100/80 group-hover:scale-110 transition-transform">
+                  {s.icon}
+                </span>
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${s.bgGlow} text-slate-700`}>
+                  {s.badge}
+                </span>
+              </div>
+              <p className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
+                {s.value}
+              </p>
+              <p className="text-xs font-semibold text-slate-500 tracking-wide">
+                {s.label}
+              </p>
+            </>
+          );
+
+          return s.href ? (
+            <Link
+              key={s.label}
+              href={s.href}
+              className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
+            >
+              {content}
+            </Link>
+          ) : (
+            <div
+              key={s.label}
+              className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              {content}
             </div>
-            <p className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
-              {s.value}
-            </p>
-            <p className="text-xs font-semibold text-slate-500 tracking-wide">
-              {s.label}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Main Grid Section */}

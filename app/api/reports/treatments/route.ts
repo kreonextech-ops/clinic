@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       FROM treatments t
       JOIN visits v ON t.visit_id = v.id
       JOIN patients p ON v.patient_id = p.id
-      WHERE t.created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
+      WHERE v.visit_date >= CURRENT_DATE - INTERVAL '${sql.raw(String(months))} months'
       AND p.user_id = ${session.user.userId}
       GROUP BY treatment_name
       ORDER BY count DESC

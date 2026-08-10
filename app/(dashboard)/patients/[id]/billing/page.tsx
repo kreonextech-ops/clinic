@@ -48,7 +48,7 @@ export default async function PatientBillingPage({ params }: { params: { id: str
 
   const total = earningsList.reduce((s, e) => s + parseFloat(e.totalAmount || '0'), 0);
   const settled = earningsList.filter((e: any) => e.paymentStatus === 'settled').reduce((s, e) => s + parseFloat(e.totalAmount || '0'), 0);
-  const pending = total - settled;
+  const pending = earningsList.filter((e: any) => e.paymentStatus === 'pending').reduce((s, e) => s + parseFloat(e.procedureFeeBalance || '0'), 0);
 
   const tabs = [
     { href: `/patients/${id}`, label: 'Overview' },

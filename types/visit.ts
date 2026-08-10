@@ -30,6 +30,7 @@ export interface Visit {
   visitDate: string;
   complaints?: string | null;
   doctorNotes?: string | null;
+  visitType?: 'new_treatment' | 'follow_up' | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +59,7 @@ export interface PatientFile {
   createdAt: string;
 }
 
+
 export interface VisitWithDetails extends Visit {
   patient: Patient;
   treatments: Treatment[];
@@ -65,4 +67,5 @@ export interface VisitWithDetails extends Visit {
   inventoryUsed: InventoryUsedEntry[];
   followUps: FollowUp[];
   files: PatientFile[];
+  payments?: any[];
 }

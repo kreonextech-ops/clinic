@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils/cn';
 import { hasPermission, isOwner } from '@/lib/auth/permissions';
 
@@ -41,7 +41,7 @@ export function Sidebar() {
   ].filter((i: any) => i.show);
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white/95 backdrop-blur-2xl border-r border-slate-200/80 min-h-screen fixed left-0 top-0 z-30 shadow-sm text-slate-800">
+    <aside className="hidden lg:flex flex-col w-64 bg-white/95 backdrop-blur-2xl border-r border-slate-200/80 h-screen overflow-y-auto fixed left-0 top-0 z-30 shadow-sm text-slate-800">
       {/* Brand Header */}
       <div className="px-6 py-6 border-b border-slate-100">
         <div className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export function Sidebar() {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-6 space-y-1.5">
         <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Main Navigation</p>
         {navItems.map((item: any) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -105,8 +105,19 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Logout Button */}
+      <div className="px-3">
+        <button
+          onClick={() => signOut({ callbackUrl: '/login' })}
+          className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 transition-all duration-200"
+        >
+          <span className="text-lg">🚪</span>
+          <span className="truncate">Log Out</span>
+        </button>
+      </div>
+
       {/* Footer Info */}
-      <div className="p-4 m-3 bg-slate-50 border border-slate-200/60 rounded-2xl">
+      <div className="p-4 m-3 mt-1 bg-slate-50 border border-slate-200/60 rounded-2xl">
         <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
           <span>System Status</span>
           <span className="text-emerald-600 font-bold flex items-center gap-1.5">

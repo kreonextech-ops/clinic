@@ -24,6 +24,7 @@ export function VisitForm() {
   // Visit base
   const [patientId, setPatientId] = useState(defaultPatientId);
   const [visitDate, setVisitDate] = useState(todayISO());
+  const [visitType, setVisitType] = useState<'new_treatment' | 'follow_up'>('new_treatment');
   const [complaints, setComplaints] = useState('');
   const [doctorNotes, setDoctorNotes] = useState('');
 
@@ -32,6 +33,7 @@ export function VisitForm() {
   const [customTreatment, setCustomTreatment] = useState('');
 
   // Earnings
+  const [applyConsultation, setApplyConsultation] = useState(false);
   const [consultationFee, setConsultationFee] = useState('0');
   const [procedureFeeTotal, setProcedureFeeTotal] = useState('0');
   const [procedureFeePaid, setProcedureFeePaid] = useState('0');
@@ -98,6 +100,7 @@ export function VisitForm() {
         patientId: parseInt(patientId),
         appointmentId: defaultApptId ? parseInt(defaultApptId) : null,
         visitDate,
+        visitType,
         complaints: complaints || null,
         doctorNotes: doctorNotes || null,
       },
@@ -137,21 +140,48 @@ export function VisitForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* ── 0. Visit Type Toggle ── */}
+      <div className="flex gap-2">
+        {(['new_treatment', 'follow_up'] as const).map((vt) => (
+          <button
+            key={vt}
+            type="button"
+            onClick={() => setVisitType(vt)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border ${
+              visitType === vt
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {vt === 'new_treatment' ? '🆕 New Treatment' : '🔄 Follow-up Visit'}
+          </button>
+        ))}
+      </div>
+
       {/* ── 1. Patient & Date ── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="font-semibold text-gray-900 mb-4">Patient & Visit Date</h3>
         <div className="grid sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Search Patient</label>
-            <input className={inputClass} placeholder="Type name or ID..." value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Select Patient *</label>
-            <select required value={patientId} onChange={(e) => setPatientId(e.target.value)} className={inputClass}>
-              <option value="">Choose patient</option>
-              {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name} — {p.patientId}</option>)}
-            </select>
-          </div>
+          {!defaultPatientId && (
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Search Patient</label>
+              <input className={inputClass} placeholder="Type name or ID..." value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} />
+            </div>
+          )}
+          {defaultPatientId ? (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Patient</label>
+              <input disabled value={patients.find((p) => p.id === parseInt(defaultPatientId))?.name || 'Autofilled...'} className={inputClass} />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Select Patient *</label>
+              <select required value={patientId} onChange={(e) => setPatientId(e.target.value)} className={inputClass}>
+                <option value="">Choose patient</option>
+                {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name} — {p.patientId}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Visit Date *</label>
             <input type="date" required value={visitDate} onChange={(e) => setVisitDate(e.target.value)} className={inputClass} />
@@ -203,8 +233,20 @@ export function VisitForm() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="font-semibold text-gray-900 mb-3">Billing</h3>
         <div className="grid sm:grid-cols-3 gap-4">
+          {/* Consultation Toggle */}
+          <div className="sm:col-span-3 mb-2 flex items-center gap-3">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" checked={applyConsultation} onChange={(e) => {
+                setApplyConsultation(e.target.checked);
+                setConsultationFee(e.target.checked ? '300' : '0');
+              }} />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <span className="ml-3 text-sm font-medium text-gray-700">Apply Consultation Charge?</span>
+            </label>
+          </div>
+
           {[
-            { label: 'Consultation Fee (₹)', value: consultationFee, set: setConsultationFee },
+            ...(applyConsultation ? [{ label: 'Consultation Fee (₹)', value: consultationFee, set: setConsultationFee }] : []),
             { label: 'Procedure Fee Total (₹)', value: procedureFeeTotal, set: setProcedureFeeTotal },
             { label: 'Procedure Fee Paid (₹)', value: procedureFeePaid, set: setProcedureFeePaid },
             { label: 'Medicine Charge (₹)', value: medicineCharge, set: setMedicineCharge },

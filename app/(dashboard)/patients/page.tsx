@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { patients, visits } from '@/lib/db/schema';
-import { ilike, or, eq, desc, sql } from 'drizzle-orm';
+import { ilike, or, eq, desc, sql, and } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { PatientCard } from '@/components/patients/PatientCard';
 import { PatientSearch } from '@/components/patients/PatientSearch';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -33,14 +35,22 @@ export default async function PatientsPage({ searchParams }: Props) {
     .leftJoin(visits, eq(visits.patientId, patients.id))
     .$dynamic();
 
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   if (q) {
     query = query.where(
-      or(
-        ilike(patients.name, `%${q}%`),
-        ilike(patients.phone, `%${q}%`),
-        ilike(patients.patientId, `%${q}%`)
+      and(
+        eq(patients.userId, session.user.userId),
+        or(
+          ilike(patients.name, `%${q}%`),
+          ilike(patients.phone, `%${q}%`),
+          ilike(patients.patientId, `%${q}%`)
+        )
       )
     );
+  } else {
+    query = query.where(eq(patients.userId, session.user.userId));
   }
 
   let list: any[] = [];

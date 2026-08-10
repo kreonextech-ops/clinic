@@ -11,6 +11,7 @@ export const appointmentStatusEnum = { enumValues: ['upcoming', 'completed', 'ca
 export const paymentStatusEnum = { enumValues: ['settled', 'pending'] as const };
 export const followUpStatusEnum = { enumValues: ['pending', 'completed', 'overdue'] as const };
 export const fileTypeEnum = { enumValues: ['xray', 'document', 'photo', 'other'] as const };
+export const visitTypeEnum = { enumValues: ['new_treatment', 'follow_up'] as const };
 
 import { pgEnum } from 'drizzle-orm/pg-core';
 export const genderPgEnum = pgEnum('gender', ['male', 'female', 'other']);
@@ -19,6 +20,7 @@ export const appointmentStatusPgEnum = pgEnum('appointment_status', ['upcoming',
 export const paymentStatusPgEnum = pgEnum('payment_status', ['settled', 'pending']);
 export const followUpStatusPgEnum = pgEnum('follow_up_status', ['pending', 'completed', 'overdue']);
 export const fileTypePgEnum = pgEnum('file_type', ['xray', 'document', 'photo', 'other']);
+export const visitTypePgEnum = pgEnum('visit_type', ['new_treatment', 'follow_up']);
 
 // ─── 1. Users (Owner / Main Doctor) ──────────────────────────────────────────
 export const users = pgTable('users', {
@@ -89,6 +91,7 @@ export const visits = pgTable('visits', {
   patientId: integer('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
   appointmentId: integer('appointment_id').references(() => appointments.id, { onDelete: 'set null' }),
   visitDate: date('visit_date').notNull(),
+  visitType: visitTypePgEnum('visit_type').notNull().default('new_treatment'),
   complaints: text('complaints'),
   doctorNotes: text('doctor_notes'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -120,6 +123,18 @@ export const earnings = pgTable('earnings', {
   waivedNote: text('waived_note'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ─── 7.5. Payments ────────────────────────────────────────────────────────────
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  visitId: integer('visit_id').notNull().references(() => visits.id, { onDelete: 'cascade' }),
+  patientId: integer('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  paymentDate: date('payment_date').notNull(),
+  paymentMethod: varchar('payment_method', { length: 50 }).notNull().default('cash'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // ─── 8. Follow-ups ────────────────────────────────────────────────────────────
@@ -178,6 +193,7 @@ export const patientsRelations = relations(patients, ({ many }) => ({
   visits: many(visits),
   followUps: many(followUps),
   earnings: many(earnings),
+  payments: many(payments),
   files: many(files),
 }));
 
@@ -191,6 +207,7 @@ export const visitsRelations = relations(visits, ({ one, many }) => ({
   appointment: one(appointments, { fields: [visits.appointmentId], references: [appointments.id] }),
   treatments: many(treatments),
   earnings: one(earnings, { fields: [visits.id], references: [earnings.visitId] }),
+  payments: many(payments),
   followUps: many(followUps),
   inventoryUsed: many(inventoryUsed),
   files: many(files),
@@ -203,6 +220,11 @@ export const treatmentsRelations = relations(treatments, ({ one }) => ({
 export const earningsRelations = relations(earnings, ({ one }) => ({
   visit: one(visits, { fields: [earnings.visitId], references: [visits.id] }),
   patient: one(patients, { fields: [earnings.patientId], references: [patients.id] }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  visit: one(visits, { fields: [payments.visitId], references: [visits.id] }),
+  patient: one(patients, { fields: [payments.patientId], references: [patients.id] }),
 }));
 
 export const followUpsRelations = relations(followUps, ({ one }) => ({

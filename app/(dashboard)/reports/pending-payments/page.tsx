@@ -1,15 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useReport } from '@/hooks/useReports';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { formatINR } from '@/lib/utils/formatCurrency';
 import { formatDate } from '@/lib/utils/formatDate';
+import { MonthPicker } from '@/components/reports/MonthPicker';
 import type { PendingPayment } from '@/types/report';
 
 export default function PendingPaymentsPage() {
-  const { data, loading } = useReport<PendingPayment[]>('/api/reports/pending-payments');
+  const searchParams = useSearchParams();
+  const month = searchParams?.get('month') || 'all';
+  const { data, loading } = useReport<PendingPayment[]>(`/api/reports/pending-payments?month=${month}`);
 
   const grandTotal = data?.reduce((s, r) => s + parseFloat(r.totalAmount || '0'), 0) || 0;
   const balanceTotal = data?.reduce((s, r) => s + parseFloat(r.procedureFeeBalance || '0'), 0) || 0;
@@ -22,10 +26,13 @@ export default function PendingPaymentsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Pending Payments</h1>
           {data && <p className="text-sm text-gray-500">{data.length} visits with outstanding balance</p>}
         </div>
-        <Link href="/api/pdf/report?type=pending-payments" target="_blank"
-          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-          🖨 Export PDF
-        </Link>
+        <div className="flex gap-2 items-center">
+          <MonthPicker showAllTime={true} currentMonth={month} />
+          <Link href={`/api/pdf/report?type=pending-payments&month=${month}`} target="_blank"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 bg-white">
+            🖨 Export
+          </Link>
+        </div>
       </div>
 
       {/* Totals */}

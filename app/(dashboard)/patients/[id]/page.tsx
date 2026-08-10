@@ -23,7 +23,7 @@ export default async function PatientProfilePage({ params }: { params: { id: str
       const [s] = await db.select({
         visitCount: sql<number>`count(distinct ${visits.id})`,
         totalEarned: sql<number>`coalesce(sum(${earnings.totalAmount}::numeric), 0)`,
-        pendingAmount: sql<number>`coalesce(sum(case when ${earnings.paymentStatus} = 'pending' then ${earnings.totalAmount}::numeric else 0 end), 0)`,
+        pendingAmount: sql<number>`coalesce(sum(case when ${earnings.paymentStatus} = 'pending' then ${earnings.procedureFeeBalance}::numeric else 0 end), 0)`,
         overdueFollowUps: sql<number>`count(distinct case when ${followUps.status} = 'pending' and ${followUps.dueDate} < current_date then ${followUps.id} end)`,
       })
         .from(patients)

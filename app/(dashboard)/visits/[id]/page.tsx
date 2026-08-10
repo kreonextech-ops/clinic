@@ -26,6 +26,8 @@ export default function VisitDetailPage() {
 
   const [editBilling, setEditBilling] = useState(false);
   const [billingForm, setBillingForm] = useState<Record<string, string>>({});
+  const [paymentForm, setPaymentForm] = useState({ amount: '', paymentDate: new Date().toISOString().split('T')[0], paymentMethod: 'cash', notes: '' });
+  const [addPaymentOpen, setAddPaymentOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -35,7 +37,6 @@ export default function VisitDetailPage() {
     setBillingForm({
       consultationFee: e.consultationFee,
       procedureFeeTotal: e.procedureFeeTotal,
-      procedureFeePaid: e.procedureFeePaid,
       medicineCharge: e.medicineCharge,
       paymentStatus: e.paymentStatus,
       waivedNote: e.waivedNote || '',
@@ -54,7 +55,7 @@ export default function VisitDetailPage() {
         earnings: {
           consultationFee: parseFloat(billingForm.consultationFee) || 0,
           procedureFeeTotal: parseFloat(billingForm.procedureFeeTotal) || 0,
-          procedureFeePaid: parseFloat(billingForm.procedureFeePaid) || 0,
+          procedureFeePaid: parseFloat(visit?.earnings?.procedureFeePaid || '0'),
           medicineCharge: parseFloat(billingForm.medicineCharge) || 0,
           paymentStatus: billingForm.paymentStatus,
           waivedNote: billingForm.waivedNote || null,
@@ -63,6 +64,19 @@ export default function VisitDetailPage() {
     });
     setSaving(false);
     setEditBilling(false);
+    refresh();
+  }
+
+  async function addPayment(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    await fetch(`/api/visits/${id}/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(paymentForm),
+    });
+    setSaving(false);
+    setAddPaymentOpen(false);
     refresh();
   }
 
@@ -94,7 +108,14 @@ export default function VisitDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Visit — {formatDate(visit.visitDate)}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">Visit — {formatDate(visit.visitDate)}</h1>
+            {visit.visitType === 'new_treatment' ? (
+              <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 font-medium border border-blue-200">New Treatment</span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-800 font-medium border border-purple-200">Follow-up</span>
+            )}
+          </div>
           <Link href={`/patients/${visit.patientId}`} className="text-blue-600 text-sm hover:underline">
             {visit.patient.name} · {visit.patient.patientId}
           </Link>
@@ -149,7 +170,8 @@ export default function VisitDetailPage() {
 
       {/* Billing — only if user has finance permission */}
       {canViewEarnings ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-900">Billing</h3>
             <div className="flex gap-2">
@@ -168,11 +190,10 @@ export default function VisitDetailPage() {
           {!e ? <p className="text-sm text-gray-400">No billing recorded</p>
             : editBilling ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { label: 'Consultation (₹)', key: 'consultationFee' },
                     { label: 'Procedure Total (₹)', key: 'procedureFeeTotal' },
-                    { label: 'Procedure Paid (₹)', key: 'procedureFeePaid' },
                     { label: 'Medicine (₹)', key: 'medicineCharge' },
                   ].map((f: any) => (
                     <div key={f.key}>
@@ -217,6 +238,66 @@ export default function VisitDetailPage() {
               </div>
             )}
         </div>
+        
+        {/* Payments Ledger Section */}
+        {visit.payments && visit.payments.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mt-4">
+            <h4 className="font-semibold text-gray-800 mb-3 text-sm">Payment History</h4>
+            <div className="space-y-2">
+              {visit.payments.map((p: any) => (
+                <div key={p.id} className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">₹{parseFloat(p.amount).toFixed(0)}</p>
+                    <p className="text-xs text-gray-500">{formatDate(p.paymentDate)} · {p.paymentMethod}</p>
+                  </div>
+                  {p.notes && <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">{p.notes}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {e && canEditEarnings && parseFloat(e.procedureFeeBalance) > 0 && (
+          <div className="mt-4">
+            {!addPaymentOpen ? (
+              <button onClick={() => setAddPaymentOpen(true)} className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200">
+                + Add Payment
+              </button>
+            ) : (
+              <form onSubmit={addPayment} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 className="font-semibold text-sm text-gray-800">Record Payment</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Amount (₹)</label>
+                    <input type="number" required min="1" max={e.procedureFeeBalance} value={paymentForm.amount} onChange={(ev) => setPaymentForm({ ...paymentForm, amount: ev.target.value })} className="w-full text-sm p-1.5 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Date</label>
+                    <input type="date" required value={paymentForm.paymentDate} onChange={(ev) => setPaymentForm({ ...paymentForm, paymentDate: ev.target.value })} className="w-full text-sm p-1.5 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Method</label>
+                    <select required value={paymentForm.paymentMethod} onChange={(ev) => setPaymentForm({ ...paymentForm, paymentMethod: ev.target.value })} className="w-full text-sm p-1.5 border rounded">
+                      <option value="cash">Cash</option>
+                      <option value="card">Card</option>
+                      <option value="upi">UPI</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Notes</label>
+                    <input type="text" value={paymentForm.notes} onChange={(ev) => setPaymentForm({ ...paymentForm, notes: ev.target.value })} className="w-full text-sm p-1.5 border rounded" placeholder="Optional" />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setAddPaymentOpen(false)} className="px-3 py-1.5 text-xs border rounded hover:bg-gray-100">Cancel</button>
+                  <button type="submit" disabled={saving} className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">Save Payment</button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+        </>
       ) : (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
           <span className="text-2xl mb-2 block">🔒</span>

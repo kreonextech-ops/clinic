@@ -19,17 +19,18 @@ export async function GET(req: NextRequest) {
   try {
     const rows = await db.execute(sql`
       SELECT
-        to_char(created_at, 'YYYY-MM') AS month,
-        to_char(created_at, 'Mon YYYY') AS label,
-        COALESCE(SUM(consultation_fee::numeric), 0) AS consultation,
-        COALESCE(SUM(procedure_fee_total::numeric), 0) AS procedure,
-        COALESCE(SUM(medicine_charge::numeric), 0) AS medicine,
-        COALESCE(SUM(total_amount::numeric), 0) AS total,
-        COALESCE(SUM(CASE WHEN payment_status = 'settled' THEN total_amount::numeric ELSE 0 END), 0) AS settled,
-        COALESCE(SUM(CASE WHEN payment_status = 'pending' THEN total_amount::numeric ELSE 0 END), 0) AS pending
+        to_char(v.visit_date, 'YYYY-MM') AS month,
+        to_char(v.visit_date, 'Mon YYYY') AS label,
+        COALESCE(SUM(e.consultation_fee::numeric), 0) AS consultation,
+        COALESCE(SUM(e.procedure_fee_total::numeric), 0) AS procedure,
+        COALESCE(SUM(e.medicine_charge::numeric), 0) AS medicine,
+        COALESCE(SUM(e.total_amount::numeric), 0) AS total,
+        COALESCE(SUM(CASE WHEN e.payment_status = 'settled' THEN e.total_amount::numeric ELSE 0 END), 0) AS settled,
+        COALESCE(SUM(CASE WHEN e.payment_status = 'pending' THEN e.total_amount::numeric ELSE 0 END), 0) AS pending
       FROM earnings e
+      JOIN visits v ON e.visit_id = v.id
       JOIN patients p ON e.patient_id = p.id
-      WHERE e.created_at >= NOW() - INTERVAL '${sql.raw(String(months))} months'
+      WHERE v.visit_date >= CURRENT_DATE - INTERVAL '${sql.raw(String(months))} months'
       AND p.user_id = ${session.user.userId}
       GROUP BY month, label
       ORDER BY month ASC
