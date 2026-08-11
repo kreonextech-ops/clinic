@@ -15,6 +15,7 @@ export default async function PatientBillingPage({ params }: { params: { id: str
   if (isNaN(id)) notFound();
 
   const session = await getServerSession(authOptions);
+  if (!session) return null;
 
   // Gate: only users with finance permission see billing
   if (!hasPermission(session, 'can_view_earnings')) {
