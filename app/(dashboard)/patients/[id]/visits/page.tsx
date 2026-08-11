@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { patients, visits } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { formatDate } from '@/lib/utils/formatDate';
 import { formatINR } from '@/lib/utils/formatCurrency';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -11,11 +13,14 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   let patient: any = null;
   let allVisits: any[] = [];
 
   try {
-    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    const [p] = await db.select().from(patients).where(and(eq(patients.id, id), eq(patients.userId, session.user.userId))).limit(1);
     patient = p;
     if (patient) {
       allVisits = await db.query.visits.findMany({

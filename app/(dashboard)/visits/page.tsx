@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { visits } from '@/lib/db/schema';
-import { desc } from 'drizzle-orm';
+import { visits, patients } from '@/lib/db/schema';
+import { desc, eq, inArray } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { formatDate } from '@/lib/utils/formatDate';
 import { formatINR } from '@/lib/utils/formatCurrency';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -10,9 +12,16 @@ import { EmptyState } from '@/components/shared/EmptyState';
 export const dynamic = 'force-dynamic';
 
 export default async function VisitsPage() {
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   let list: any[] = [];
   try {
     list = await db.query.visits.findMany({
+      where: inArray(
+        visits.patientId,
+        db.select({ id: patients.id }).from(patients).where(eq(patients.userId, session.user.userId))
+      ),
       orderBy: [desc(visits.visitDate)],
       with: { patient: true, treatments: true, earnings: true },
       limit: 200,

@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { patients, visits, earnings } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { hasPermission } from '@/lib/auth/permissions';
 import { formatDate } from '@/lib/utils/formatDate';
 import { formatINR } from '@/lib/utils/formatCurrency';
@@ -31,7 +31,7 @@ export default async function PatientBillingPage({ params }: { params: { id: str
   let earningsList: any[] = [];
 
   try {
-    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    const [p] = await db.select().from(patients).where(and(eq(patients.id, id), eq(patients.userId, session.user.userId))).limit(1);
     patient = p;
     if (patient) {
       earningsList = await db.query.earnings.findMany({

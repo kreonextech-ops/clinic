@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { patients, visits, earnings, followUps } from '@/lib/db/schema';
 import { eq, desc, sql, and, eq as drizzleEq } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { formatDate } from '@/lib/utils/formatDate';
 import { formatINR } from '@/lib/utils/formatCurrency';
@@ -11,12 +13,15 @@ export default async function PatientProfilePage({ params }: { params: { id: str
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   let patient: any = null;
   let stats: any = { visitCount: 0, totalEarned: 0, pendingAmount: 0, overdueFollowUps: 0 };
   let recentVisits: any[] = [];
 
   try {
-    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    const [p] = await db.select().from(patients).where(and(eq(patients.id, id), eq(patients.userId, session.user.userId))).limit(1);
     patient = p;
 
     if (patient) {

@@ -1,16 +1,21 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { patients } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { PatientEditClient } from './PatientEditClient';
 
 export default async function PatientEditPage({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
   if (isNaN(id)) notFound();
 
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   let patient: any = null;
   try {
-    const [p] = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+    const [p] = await db.select().from(patients).where(and(eq(patients.id, id), eq(patients.userId, session.user.userId))).limit(1);
     patient = p;
   } catch (err) {
     console.error('Failed to query patient for edit:', err);

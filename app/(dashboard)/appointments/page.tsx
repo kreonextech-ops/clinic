@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { appointments } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/options';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -12,9 +14,12 @@ interface Props {
 }
 
 export default async function AppointmentsPage({ searchParams }: Props) {
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+
   const { date, status } = searchParams;
 
-  const where: any[] = [];
+  const where: any[] = [eq(appointments.userId, session.user.userId)];
   if (date) where.push(eq(appointments.scheduledDate, date));
   if (status) where.push(eq(appointments.status, status as any));
 
