@@ -95,7 +95,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         procedureFeeBalance: String(Math.max(0, procedureFeeBalance)),
         medicineCharge: String(e.medicineCharge || 0),
         totalAmount: String(totalAmount),
-        paymentStatus: e.paymentStatus,
+        paymentStatus: procedureFeeBalance > 0 ? 'pending' : 'settled',
         waivedNote: e.waivedNote ?? null,
         updatedAt: new Date(),
       }).where(eq(earnings.visitId, visitId));

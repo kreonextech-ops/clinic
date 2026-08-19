@@ -86,10 +86,14 @@ export default async function PatientVisitsPage({ params }: { params: { id: stri
                 </div>
                 {v.earnings && (
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-gray-900">{formatINR(parseFloat(v.earnings.totalAmount || '0'))}</p>
+                    <p className="text-sm font-bold text-gray-900">
+                      {v.earnings.paymentStatus === 'pending'
+                        ? formatINR(parseFloat(v.earnings.procedureFeeBalance || '0'))
+                        : formatINR(parseFloat(v.earnings.totalAmount || '0'))}
+                    </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       v.earnings.paymentStatus === 'settled' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                    }`}>{v.earnings.paymentStatus}</span>
+                    }`}>{v.earnings.paymentStatus === 'pending' ? 'due' : 'settled'}</span>
                   </div>
                 )}
               </div>

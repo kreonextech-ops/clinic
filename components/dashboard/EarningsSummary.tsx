@@ -2,13 +2,11 @@ import { formatINR } from '@/lib/utils/formatCurrency';
 import Link from 'next/link';
 
 interface EarningsSummaryProps {
-  monthTotal: number;
   monthSettled: number;
   monthPending: number;
-  todayTotal: number;
 }
 
-export function EarningsSummary({ monthTotal, monthSettled, monthPending, todayTotal }: EarningsSummaryProps) {
+export function EarningsSummary({ monthSettled, monthPending }: EarningsSummaryProps) {
   const monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
@@ -25,18 +23,7 @@ export function EarningsSummary({ monthTotal, monthSettled, monthPending, todayT
         </Link>
       </div>
 
-      <div className="grid sm:grid-cols-4 gap-4">
-        <Link href={`/reports/revenue?month=${new Date().toISOString().slice(0, 7)}`} className="sm:col-span-2 p-4 rounded-xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all block">
-          <p className="text-xs font-semibold text-slate-400">Total Monthly Revenue</p>
-          <p className="text-3xl font-extrabold text-white mt-1 tracking-tight">
-            {formatINR(monthTotal)}
-          </p>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-800 text-xs text-slate-300">
-            <span>Today&apos;s Revenue:</span>
-            <span className="font-bold text-emerald-400">{formatINR(todayTotal)}</span>
-          </div>
-        </Link>
-
+      <div className="grid sm:grid-cols-2 gap-4">
         <Link href={`/reports/settled?month=${new Date().toISOString().slice(0, 7)}`} className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:-translate-y-0.5 transition-all block">
           <p className="text-xs font-bold text-emerald-700">Settled Amount</p>
           <p className="text-2xl font-extrabold text-emerald-800 mt-1">{formatINR(monthSettled)}</p>

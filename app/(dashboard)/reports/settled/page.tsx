@@ -7,37 +7,36 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { formatINR } from '@/lib/utils/formatCurrency';
 import { formatDate } from '@/lib/utils/formatDate';
-import { MonthPicker } from '@/components/reports/MonthPicker';
+import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { useReport } from '@/hooks/useReports';
 
 export default function SettledDetailsPage() {
   const searchParams = useSearchParams();
-  const month = searchParams?.get('month') || new Date().toISOString().slice(0, 7);
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const month = searchParams?.get('month');
+  const from = searchParams?.get('from');
+  const to = searchParams?.get('to');
+  
+  const query = from && to ? `?from=${from}&to=${to}` : `?month=${month || 'all'}`;
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const res = await fetch(`/api/reports/settled-details?month=${month}`);
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, [month]);
+  const { data, loading } = useReport<any[]>(`/api/reports/settled-details${query}`);
 
-  const totalSettled = data.reduce((acc, row) => acc + Number(row.amount || 0), 0);
+  const totalSettled = data?.reduce((acc, row) => acc + Number(row.amount || 0), 0) || 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader 
-          title="Settled Amount (Money Received)" 
-          description="Detailed ledger of all payments received in this period."
-        />
-        <MonthPicker showAllTime={true} currentMonth={month} />
+        <div>
+          <Link href="/reports" className="text-xs text-blue-600 hover:underline mb-1 block">← Reports</Link>
+          <h1 className="text-2xl font-bold text-gray-900">Settled Payments</h1>
+          {data && <p className="text-sm text-gray-500">{data.length} payments received</p>}
+        </div>
+        <div className="flex gap-2 items-center self-start sm:self-auto flex-wrap">
+          <DateRangePicker />
+          <Link href={`/api/pdf/report?type=settled${query.replace('?', '&')}`} target="_blank"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 bg-white shrink-0">
+            🖨 Export
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -48,7 +47,7 @@ export default function SettledDetailsPage() {
         
         {loading ? (
           <div className="p-8 flex justify-center"><LoadingSpinner /></div>
-        ) : data.length === 0 ? (
+        ) : (!data || data.length === 0) ? (
           <div className="p-8 text-center text-gray-500">No payments received during this period.</div>
         ) : (
           <div className="overflow-x-auto">

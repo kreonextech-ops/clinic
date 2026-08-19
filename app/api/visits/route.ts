@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { visits, treatments, earnings, followUps, inventoryUsed, inventory, appointments, patients } from '@/lib/db/schema';
+import { visits, treatments, earnings, followUps, inventoryUsed, inventory, appointments, patients, payments } from '@/lib/db/schema';
 import { eq, desc, sql, inArray, and } from 'drizzle-orm';
 import { visitSchema, treatmentSchema, inventoryUsedSchema } from '@/lib/validations/visit';
 import { earningsSchema } from '@/lib/validations/earnings';
@@ -80,9 +80,24 @@ export async function POST(req: NextRequest) {
         procedureFeeBalance: String(Math.max(0, procedureFeeBalance)),
         medicineCharge: String(earningsData.medicineCharge || 0),
         totalAmount: String(totalAmount),
-        paymentStatus: earningsData.paymentStatus,
+        paymentStatus: procedureFeeBalance > 0 ? 'pending' : 'settled',
         waivedNote: earningsData.waivedNote ?? null,
       });
+
+      const initialPaid = (earningsData.consultationFee || 0) + 
+                          (earningsData.medicineCharge || 0) + 
+                          (earningsData.procedureFeePaid || 0);
+
+      if (initialPaid > 0) {
+        await db.insert(payments).values({
+          visitId: visit.id,
+          patientId: visitData.patientId,
+          amount: String(initialPaid),
+          paymentDate: visitData.visitDate,
+          paymentMethod: 'cash',
+          notes: 'Initial payment at visit creation'
+        });
+      }
     }
 
     if (followUpData.length > 0) {

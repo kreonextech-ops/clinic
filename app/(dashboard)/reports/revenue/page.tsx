@@ -7,18 +7,23 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { formatINR } from '@/lib/utils/formatCurrency';
 import { formatDate } from '@/lib/utils/formatDate';
-import { MonthPicker } from '@/components/reports/MonthPicker';
+import { DateRangePicker } from '@/components/reports/DateRangePicker';
 
 export default function RevenueDetailsPage() {
   const searchParams = useSearchParams();
-  const month = searchParams?.get('month') || new Date().toISOString().slice(0, 7);
+  const month = searchParams?.get('month');
+  const from = searchParams?.get('from');
+  const to = searchParams?.get('to');
+  
+  const query = from && to ? `?from=${from}&to=${to}` : `?month=${month || new Date().toISOString().slice(0, 7)}`;
+
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const res = await fetch(`/api/reports/revenue-details?month=${month}`);
+      const res = await fetch(`/api/reports/revenue-details${query}`);
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -26,9 +31,9 @@ export default function RevenueDetailsPage() {
       setLoading(false);
     }
     fetchData();
-  }, [month]);
+  }, [query]);
 
-  const totalBilled = data.reduce((acc, row) => acc + Number(row.totalAmount || 0), 0);
+  const totalBilled = data?.reduce((acc, row) => acc + Number(row.totalAmount || 0), 0) || 0;
 
   return (
     <div className="space-y-6">
@@ -37,7 +42,7 @@ export default function RevenueDetailsPage() {
           title="Total Monthly Revenue" 
           description="Detailed breakdown of all treatments billed in this period."
         />
-        <MonthPicker showAllTime={true} currentMonth={month} />
+        <DateRangePicker />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -48,7 +53,7 @@ export default function RevenueDetailsPage() {
         
         {loading ? (
           <div className="p-8 flex justify-center"><LoadingSpinner /></div>
-        ) : data.length === 0 ? (
+        ) : (!data || data.length === 0) ? (
           <div className="p-8 text-center text-gray-500">No revenue data found for this period.</div>
         ) : (
           <div className="overflow-x-auto">

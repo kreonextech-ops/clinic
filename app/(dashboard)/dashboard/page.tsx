@@ -45,10 +45,9 @@ async function getDashboardData(canViewEarnings: boolean) {
     let todayTotal = 0;
 
     if (canViewEarnings) {
-      const [earningsAgg, paymentsAgg, todayAgg] = await Promise.all([
+      const [earningsAgg, paymentsAgg, todayAgg, pendingAgg] = await Promise.all([
         db.select({
           total: sql<number>`coalesce(sum(earnings.total_amount::numeric), 0)`,
-          pending: sql<number>`coalesce(sum(case when earnings.payment_status = 'pending' then earnings.procedure_fee_balance::numeric else 0 end), 0)`,
         })
           .from(earnings)
           .innerJoin(patients, eq(patients.id, earnings.patientId))
@@ -63,10 +62,15 @@ async function getDashboardData(canViewEarnings: boolean) {
           .innerJoin(patients, eq(patients.id, earnings.patientId))
           .leftJoin(visits, eq(earnings.visitId, visits.id))
           .where(and(eq(visits.visitDate, today), eq(patients.userId, ownerId))),
+        db.select({ pending: sql<number>`coalesce(sum(earnings.procedure_fee_balance::numeric), 0)` })
+          .from(earnings)
+          .innerJoin(patients, eq(patients.id, earnings.patientId))
+          .leftJoin(visits, eq(earnings.visitId, visits.id))
+          .where(and(eq(earnings.paymentStatus, 'pending'), gte(visits.visitDate, monthStart), eq(patients.userId, ownerId))),
       ]);
 
       monthTotal = Number(earningsAgg[0]?.total || 0);
-      monthPending = Number(earningsAgg[0]?.pending || 0);
+      monthPending = Number(pendingAgg[0]?.pending || 0);
       monthSettled = Number(paymentsAgg[0]?.settled || 0);
       todayTotal = Number(todayAgg[0]?.total || 0);
     }
@@ -217,10 +221,8 @@ export default async function DashboardPage() {
       {/* Earnings Summary Section */}
       {canViewEarnings && (
         <EarningsSummary
-          monthTotal={Number(data.month.total)}
           monthSettled={Number(data.month.settled)}
           monthPending={Number(data.month.pending)}
-          todayTotal={data.todayTotal}
         />
       )}
     </div>

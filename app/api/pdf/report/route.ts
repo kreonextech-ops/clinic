@@ -23,8 +23,13 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
     html = earningsReportHtml(clinicName, data, months);
   } else if (type === 'pending-payments') {
+    const month = searchParams.get('month');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    const query = from && to ? `?from=${from}&to=${to}` : `?month=${month || 'all'}`;
+    
     const res = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/reports/pending-payments`,
+      `${process.env.NEXTAUTH_URL}/api/reports/pending-payments${query}`,
       { headers: { cookie: req.headers.get('cookie') || '' } }
     );
     const data = await res.json();

@@ -25,8 +25,8 @@ export async function GET(req: NextRequest) {
         COALESCE(SUM(e.procedure_fee_total::numeric), 0) AS procedure,
         COALESCE(SUM(e.medicine_charge::numeric), 0) AS medicine,
         COALESCE(SUM(e.total_amount::numeric), 0) AS total,
-        COALESCE(SUM(CASE WHEN e.payment_status = 'settled' THEN e.total_amount::numeric ELSE 0 END), 0) AS settled,
-        COALESCE(SUM(CASE WHEN e.payment_status = 'pending' THEN e.total_amount::numeric ELSE 0 END), 0) AS pending
+        COALESCE(SUM((e.total_amount::numeric) - (e.procedure_fee_balance::numeric)), 0) AS settled,
+        COALESCE(SUM(e.procedure_fee_balance::numeric), 0) AS pending
       FROM earnings e
       JOIN visits v ON e.visit_id = v.id
       JOIN patients p ON e.patient_id = p.id

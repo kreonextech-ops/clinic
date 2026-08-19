@@ -69,12 +69,8 @@ export function pendingPaymentsReportHtml(clinicName: string, data: any[]): stri
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px 16px;flex:1">
-      <div style="font-size:11px;color:#6b7280">Total Outstanding</div>
-      <div style="font-size:18px;font-weight:bold;color:#c2410c">${formatINR(total)}</div>
-    </div>
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;flex:1">
-      <div style="font-size:11px;color:#6b7280">Procedure Balance</div>
-      <div style="font-size:18px;font-weight:bold;color:#b91c1c">${formatINR(balance)}</div>
+      <div style="font-size:11px;color:#6b7280">Total Pending Balance</div>
+      <div style="font-size:18px;font-weight:bold;color:#c2410c">${formatINR(balance)}</div>
     </div>
   </div>
   <table>

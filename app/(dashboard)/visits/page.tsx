@@ -96,7 +96,9 @@ export default async function VisitsPage() {
                 {v.earnings && (
                   <>
                     <p className="text-sm font-bold text-gray-900">
-                      {formatINR(parseFloat(v.earnings.totalAmount || '0'))}
+                      {v.earnings.paymentStatus === 'pending'
+                        ? formatINR(parseFloat(v.earnings.procedureFeeBalance || '0'))
+                        : formatINR(parseFloat(v.earnings.totalAmount || '0'))}
                     </p>
                     <span
                       className={`text-xs px-1.5 py-0.5 rounded-full ${
@@ -105,7 +107,7 @@ export default async function VisitsPage() {
                           : 'bg-orange-100 text-orange-700'
                       }`}
                     >
-                      {v.earnings.paymentStatus}
+                      {v.earnings.paymentStatus === 'pending' ? 'due' : 'settled'}
                     </span>
                   </>
                 )}

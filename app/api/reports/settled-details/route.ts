@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { hasPermission } from '@/lib/auth/permissions';
 import { db } from '@/lib/db';
 import { payments, patients, visits, earnings } from '@/lib/db/schema';
-import { eq, and, gte, lt, desc } from 'drizzle-orm';
+import { eq, and, gte, lt, desc, lte } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,10 +17,15 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const month = searchParams.get('month'); // YYYY-MM or 'all'
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
 
   let conditions = [eq(patients.userId, session.user.userId)];
 
-  if (month && month !== 'all') {
+  if (from && to) {
+    conditions.push(gte(payments.paymentDate, from));
+    conditions.push(lte(payments.paymentDate, to));
+  } else if (month && month !== 'all') {
     const startDate = `${month}-01`;
     const dateObj = new Date(startDate);
     dateObj.setMonth(dateObj.getMonth() + 1);

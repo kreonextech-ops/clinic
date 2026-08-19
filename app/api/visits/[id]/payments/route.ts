@@ -50,11 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const procedureTotal = parseFloat(visit.earnings.procedureFeeTotal || '0');
     const newBalance = Math.max(0, procedureTotal - newPaid);
     
-    // Automatically settle if balance is 0 and it was pending
-    let status = visit.earnings.paymentStatus;
-    if (newBalance === 0 && status === 'pending') {
-      status = 'settled';
-    }
+    let status: 'pending' | 'settled' = newBalance > 0 ? 'pending' : 'settled';
 
     await db.update(earnings).set({
       procedureFeePaid: newPaid.toString(),
