@@ -11,6 +11,7 @@ import { z } from 'zod';
 const treatmentUpdateSchema = z.object({
   treatmentName: z.string().min(1),
   isCustom: z.boolean().optional().default(false),
+  isLongTerm: z.boolean().optional().default(false),
   notes: z.string().optional().nullable(),
 });
 
@@ -70,6 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           visitId,
           treatmentName: t.treatmentName,
           isCustom: t.isCustom ?? false,
+          isLongTerm: t.isLongTerm ?? false,
           notes: t.notes ?? null,
         }))
       );

@@ -37,6 +37,10 @@ export function Sidebar() {
       href: '/reports', label: 'Analytics & Reports', icon: '📊',
       show: hasPermission(session, 'can_view_reports'),
     },
+    {
+      href: '/expenses', label: 'Expenses', icon: '💸',
+      show: owner || hasPermission(session, 'can_view_reports'),
+    },
     { href: '/settings', label: 'Settings', icon: '⚙️', show: true },
   ].filter((i: any) => i.show);
 

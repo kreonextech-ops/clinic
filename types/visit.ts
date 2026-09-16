@@ -6,6 +6,7 @@ export interface Treatment {
   visitId: number;
   treatmentName: string;
   isCustom: boolean;
+  isLongTerm: boolean;
   notes?: string | null;
   createdAt: string;
 }

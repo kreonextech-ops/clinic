@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { supabase } from '@/lib/supabase/client';
 import { parsePermissions } from '@/lib/auth/permissions';
+import { db } from '@/lib/db';
 
 export const authOptions: NextAuthOptions = {
   secret:
@@ -45,30 +46,24 @@ export const authOptions: NextAuthOptions = {
         const inputUsername = credentials.username.trim();
 
         try {
-          // 1. Check owner account first via Supabase HTTPS REST API
-          const { data: owner, error: ownerErr } = await supabase
-            .from('users')
-            .select('*')
-            .ilike('username', inputUsername)
-            .maybeSingle();
-
-          if (ownerErr) {
-            console.error('Supabase auth user query error:', ownerErr);
-          }
+          // 1. Check owner account first via Drizzle (bypasses RLS)
+          const owner = await db.query.users.findFirst({
+            where: (users, { ilike }) => ilike(users.username, inputUsername)
+          });
 
           if (owner) {
-            const valid = await bcrypt.compare(credentials.password, owner.password_hash);
+            const valid = await bcrypt.compare(credentials.password, owner.passwordHash);
             if (!valid) return null;
 
             return {
               id: `owner-${owner.id}`,
               userId: owner.id,
-              name: owner.doctor_name,
+              name: owner.doctorName,
               email: owner.email ?? undefined,
               username: owner.username,
-              clinicName: owner.clinic_name,
-              doctorName: owner.doctor_name,
-              logoUrl: owner.logo_url || null,
+              clinicName: owner.clinicName,
+              doctorName: owner.doctorName,
+              logoUrl: owner.logoUrl || null,
               role: 'owner',
               permissions: {},
               staffId: null,
@@ -76,41 +71,33 @@ export const authOptions: NextAuthOptions = {
           }
 
           // 2. Check staff accounts
-          const { data: member, error: staffErr } = await supabase
-            .from('staff')
-            .select('*')
-            .ilike('username', inputUsername)
-            .maybeSingle();
+          const member = await db.query.staff.findFirst({
+            where: (staff, { ilike }) => ilike(staff.username, inputUsername)
+          });
 
-          if (staffErr) {
-            console.error('Supabase auth staff query error:', staffErr);
-          }
+          if (!member || !member.isActive) return null;
 
-          if (!member || !member.is_active) return null;
-
-          const valid = await bcrypt.compare(credentials.password, member.password_hash);
+          const valid = await bcrypt.compare(credentials.password, member.passwordHash);
           if (!valid) return null;
 
           // Get clinic info from owner record
           let ownerRecord: any = null;
-          if (member.user_id) {
-            const { data } = await supabase
-              .from('users')
-              .select('id, clinic_name, logo_url')
-              .eq('id', member.user_id)
-              .maybeSingle();
-            ownerRecord = data;
+          if (member.userId) {
+            ownerRecord = await db.query.users.findFirst({
+              where: (users, { eq }) => eq(users.id, member.userId),
+              columns: { id: true, clinicName: true, logoUrl: true }
+            });
           }
 
           return {
             id: `staff-${member.id}`,
             userId: ownerRecord?.id || 1,
-            name: member.display_name,
+            name: member.displayName,
             email: undefined,
             username: member.username,
-            clinicName: ownerRecord?.clinic_name || 'Dental Clinic',
-            doctorName: member.display_name,
-            logoUrl: ownerRecord?.logo_url || null,
+            clinicName: ownerRecord?.clinicName || 'Dental Clinic',
+            doctorName: member.displayName,
+            logoUrl: ownerRecord?.logoUrl || null,
             role: member.role,
             permissions: parsePermissions(member.permissions),
             staffId: member.id,

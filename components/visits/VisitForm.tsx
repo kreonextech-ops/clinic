@@ -29,7 +29,7 @@ export function VisitForm() {
   const [doctorNotes, setDoctorNotes] = useState('');
 
   // Treatments
-  const [selectedTreatments, setSelectedTreatments] = useState<{ treatmentName: string; isCustom: boolean; notes: string }[]>([]);
+  const [selectedTreatments, setSelectedTreatments] = useState<{ treatmentName: string; isCustom: boolean; isLongTerm: boolean; notes: string }[]>([]);
   const [customTreatment, setCustomTreatment] = useState('');
 
   // Earnings
@@ -55,7 +55,11 @@ export function VisitForm() {
   function addTreatment(name: string, isCustom = false) {
     if (!name.trim()) return;
     if (selectedTreatments.find((t: any) => t.treatmentName === name)) return;
-    setSelectedTreatments((p) => [...p, { treatmentName: name, isCustom, notes: '' }]);
+    setSelectedTreatments((p) => [...p, { treatmentName: name, isCustom, isLongTerm: false, notes: '' }]);
+  }
+
+  function toggleLongTerm(name: string) {
+    setSelectedTreatments((p) => p.map(t => t.treatmentName === name ? { ...t, isLongTerm: !t.isLongTerm } : t));
   }
 
   function removeTreatment(name: string) {
@@ -201,12 +205,16 @@ export function VisitForm() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="font-semibold text-gray-900 mb-3">Treatments</h3>
         {selectedTreatments.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-col gap-2 mb-3">
             {selectedTreatments.map((t: any) => (
-              <span key={t.treatmentName} className="flex items-center gap-1.5 bg-blue-100 text-blue-800 text-xs px-3 py-1.5 rounded-full">
-                {t.treatmentName}
-                <button type="button" onClick={() => removeTreatment(t.treatmentName)} className="text-blue-500 hover:text-blue-900 font-bold">×</button>
-              </span>
+              <div key={t.treatmentName} className="flex flex-wrap items-center gap-3 bg-blue-50 border border-blue-100 px-3 py-2 rounded-lg">
+                <span className="font-medium text-sm text-blue-900 flex-1">{t.treatmentName}</span>
+                <label className="flex items-center gap-1.5 text-xs text-blue-800 cursor-pointer bg-white px-2 py-1 rounded border border-blue-200 shadow-sm">
+                  <input type="checkbox" checked={t.isLongTerm} onChange={() => toggleLongTerm(t.treatmentName)} className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5" />
+                  Long-Term Installment?
+                </label>
+                <button type="button" onClick={() => removeTreatment(t.treatmentName)} className="text-red-400 hover:text-red-600 font-bold text-lg leading-none ml-1">×</button>
+              </div>
             ))}
           </div>
         )}

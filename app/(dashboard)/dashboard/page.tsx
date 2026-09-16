@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
-import { appointments, earnings, followUps, inventory, visits, payments, patients } from '@/lib/db/schema';
+import { appointments, earnings, followUps, inventory, visits, payments, patients, expenses } from '@/lib/db/schema';
 import { eq, and, gte, lt, sql } from 'drizzle-orm';
 import { todayISO } from '@/lib/utils/formatDate';
 import { hasPermission } from '@/lib/auth/permissions';
@@ -42,13 +42,12 @@ async function getDashboardData(canViewEarnings: boolean) {
     let monthTotal = 0;
     let monthSettled = 0;
     let monthPending = 0;
+    let monthExpenses = 0;
     let todayTotal = 0;
 
     if (canViewEarnings) {
-      const [earningsAgg, paymentsAgg, todayAgg, pendingAgg] = await Promise.all([
-        db.select({
-          total: sql<number>`coalesce(sum(earnings.total_amount::numeric), 0)`,
-        })
+      const [earningsAgg, paymentsAgg, todayAgg, pendingAgg, expensesAgg] = await Promise.all([
+        db.select({ total: sql<number>`coalesce(sum(earnings.total_amount::numeric), 0)` })
           .from(earnings)
           .innerJoin(patients, eq(patients.id, earnings.patientId))
           .leftJoin(visits, eq(earnings.visitId, visits.id))
@@ -67,17 +66,21 @@ async function getDashboardData(canViewEarnings: boolean) {
           .innerJoin(patients, eq(patients.id, earnings.patientId))
           .leftJoin(visits, eq(earnings.visitId, visits.id))
           .where(and(eq(earnings.paymentStatus, 'pending'), gte(visits.visitDate, monthStart), eq(patients.userId, ownerId))),
+        db.select({ expenses: sql<number>`coalesce(sum(expenses.amount::numeric), 0)` })
+          .from(expenses)
+          .where(and(gte(expenses.expenseDate, monthStart), eq(expenses.userId, ownerId))),
       ]);
 
       monthTotal = Number(earningsAgg[0]?.total || 0);
       monthPending = Number(pendingAgg[0]?.pending || 0);
       monthSettled = Number(paymentsAgg[0]?.settled || 0);
+      monthExpenses = Number(expensesAgg[0]?.expenses || 0);
       todayTotal = Number(todayAgg[0]?.total || 0);
     }
 
     return {
       todayAppts,
-      month: { total: monthTotal, settled: monthSettled, pending: monthPending },
+      month: { total: monthTotal, settled: monthSettled, pending: monthPending, expenses: monthExpenses },
       todayTotal,
       overdueFollowUps: Number(overdueFollowUps[0]?.count || 0),
       lowStock: Number(lowStock[0]?.count || 0),
@@ -223,6 +226,7 @@ export default async function DashboardPage() {
         <EarningsSummary
           monthSettled={Number(data.month.settled)}
           monthPending={Number(data.month.pending)}
+          monthExpenses={Number(data.month.expenses)}
         />
       )}
     </div>

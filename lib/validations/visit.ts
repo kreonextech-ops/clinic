@@ -11,6 +11,7 @@ export const visitSchema = z.object({
 export const treatmentSchema = z.object({
   treatmentName: z.string().min(1).max(200),
   isCustom: z.boolean().default(false),
+  isLongTerm: z.boolean().default(false),
   notes: z.string().max(500).optional().nullable(),
 });
 

@@ -104,6 +104,7 @@ export const treatments = pgTable('treatments', {
   visitId: integer('visit_id').notNull().references(() => visits.id, { onDelete: 'cascade' }),
   treatmentName: varchar('treatment_name', { length: 200 }).notNull(),
   isCustom: boolean('is_custom').default(false),
+  isLongTerm: boolean('is_long_term').default(false),
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -185,6 +186,19 @@ export const files = pgTable('files', {
   fileSize: integer('file_size'),
   mimeType: varchar('mime_type', { length: 100 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ─── 12. Expenses ──────────────────────────────────────────────────────────────
+export const expenses = pgTable('expenses', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 200 }).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  category: varchar('category', { length: 100 }).notNull().default('other'),
+  expenseDate: date('expense_date').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // ─── Relations ────────────────────────────────────────────────────────────────
