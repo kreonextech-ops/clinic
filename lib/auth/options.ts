@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
           let ownerRecord: any = null;
           if (member.userId) {
             ownerRecord = await db.query.users.findFirst({
-              where: (users, { eq }) => eq(users.id, member.userId),
+              where: (users, { eq }) => eq(users.id, member.userId as number),
               columns: { id: true, clinicName: true, logoUrl: true }
             });
           }
